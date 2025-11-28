@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Submission;
+use App\Models\Teacher;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -52,7 +53,7 @@ class SubmissionController extends Controller
             $submission = Submission::where('student_id', $studentId)->where('assignment_id', $assignment_id)->first();
             $data = [
                 'file_upload' => $fileData,
-                'content' => $validated['content'] ?? null,
+                'content' => $validated['content'] ?? "",
             ];
             $submission->fill($data)->save();
             return response()->json(
@@ -116,5 +117,37 @@ class SubmissionController extends Controller
                 'errors' => $err
             ]);
         }
+    }
+    public function getSubmissionDetailByTeacher($submissionId)
+    {
+        $userId = Auth::id();
+        $teacherId = Teacher::where('user_id', $userId)->value('id');
+        $studentId = request()->query('student_id');
+        $submission = Submission::join('assignments', 'assignments.id', '=', 'submissions.assignment_id')
+            ->join('classes', 'classes.id', '=', 'assignments.class_id')
+            ->join('teachers', 'teachers.id', '=', 'classes.teacher_id')
+            ->join('students', 'students.id', '=', 'submissions.student_id')
+            ->where('teachers.id', $teacherId)
+            ->where('submissions.id', $submissionId)
+            ->where('students.id', $studentId)
+            ->select([
+                'submissions.*',
+                'students.name as student_name',
+                'students.mssv as student_mssv',
+            ])
+            ->first();
+
+        if (!$submission) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy bài nộp'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lấy bài nộp của học sinh thành công',
+            'data' => $submission
+        ]);
     }
 }

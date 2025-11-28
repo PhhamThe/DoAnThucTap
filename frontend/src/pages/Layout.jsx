@@ -65,7 +65,7 @@ const Layout = () => {
   const fetchNotifications = async () => {
     // Mock data - thay bằng API call thực tế
     setNotifications([
-      { id: 1, title: 'Bài tập mới', message: 'Có bài thực hành mới trong lớp CS101', time: '5 phút trước', read: false },
+      { id: 1, title: 'Bài tập mới', message: 'Có Bài tập mới trong lớp CS101', time: '5 phút trước', read: false },
       { id: 2, title: 'Deadline sắp đến', message: 'Bài tập lập trình hết hạn trong 2 ngày', time: '1 giờ trước', read: false },
     ]);
   };
@@ -100,8 +100,13 @@ const Layout = () => {
 
   const isActive = (path) =>
     location.pathname === path
-      ? 'bg-[#2563EB] text-white'
-      : 'text-white hover:bg-[#2563EB]';
+      ? ' bg-[#1E40AF] text-white'
+      : 'text-white hover:bg-gray-700 ';
+
+  const isSubMenuActive = (path) =>
+    location.pathname === path
+      ? 'bg-[#1E40AF] text-white'
+      : 'text-gray-300 hover:bg-gray-700';
 
   const subMenuItems = (classId) => [
     {
@@ -112,19 +117,19 @@ const Layout = () => {
     },
     {
       id: 'students',
-      label: 'Quản lý học sinh',
+      label: 'Quản lý sinh viên',
       icon: <TeamOutlined />,
       path: `admin/student_by_class/${classId}`
     },
     {
       id: 'materials',
-      label: 'Tài liệu học tập',
+      label: 'Bài giảng',
       icon: <BookOutlined />,
-      path: `admin/class/${classId}/materials`
+      path: `admin/chapters/${classId}/`
     },
     {
       id: 'practice',
-      label: 'Bài tập & Kiểm tra',
+      label: 'Kiểm tra',
       icon: <CodeOutlined />,
       path: `admin/class/${classId}/practice`
     },
@@ -153,11 +158,11 @@ const Layout = () => {
       id: 'materials',
       label: 'Tài liệu học tập',
       icon: <BookOutlined />,
-      path: `/class/${classId}/materials`
+      path: `/chapters/${classId}`
     },
     {
       id: 'practice',
-      label: 'Bài tập & Kiểm tra',
+      label: 'Kiểm tra',
       icon: <CodeOutlined />,
       path: `/class/${classId}/practice`
     },
@@ -178,33 +183,39 @@ const Layout = () => {
   const teacherMenu = (
     <>
       <Link
-        to="/dashboard"
-        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive('/dashboard')}`}
+        to="/teacher_dashboard"
+        className={`group flex items-center px-4 py-3 text-md font-medium transition-all duration-200 ${isActive('/teacher_dashboard')}`}
       >
-        Dashboard
+        <div className="flex items-center">
+          <span className="ml-2">Trang chủ</span>
+        </div>
       </Link>
 
-      <div className="mt-2">
+      <div className="mt-2 border-t border-gray-600 pt-2">
         {teacherClass.map((cls) => (
-          <div key={cls.id} className="mb-2">
+          <div key={cls.id} className="mb-1">
             <button
               onClick={() => setOpenClass(openClass === cls.id ? null : cls.id)}
-              className="flex justify-between items-center w-full text-left text-white hover:bg-[#2563EB] px-2 py-2 rounded-md"
+              className="flex justify-between items-center w-full text-left px-4 py-3 text-md text-white hover:bg-gray-700 transition-colors duration-200"
             >
-              <span>{cls.name} - {cls.subject.name}</span>
-              {openClass === cls.id ? <DownOutlined /> : <RightOutlined />}
+              <div className="flex items-center flex-1 min-w-0">
+                <span className="break-words whitespace-normal text-left flex-1">
+                  {cls.name} - {cls.subject.name}
+                </span>
+              </div>
+              {openClass === cls.id ? <DownOutlined className="text-xs flex-shrink-0 ml-2" /> : <RightOutlined className="text-xs flex-shrink-0 ml-2" />}
             </button>
 
             {openClass === cls.id && (
-              <div className="ml-4 mt-1 space-y-1">
+              <div className="ml-2 mt-1 space-y-1 border-l border-gray-600">
                 {subMenuItems(cls.id).map((item) => (
                   <Link
                     key={item.id}
                     to={item.path}
-                    className={`flex items-center gap-2 text-sm px-2 py-1 rounded-md ${isActive(item.path)}`}
+                    className={`flex items-center gap-3 text-md px-4 py-2 mx-2 transition-all duration-200 ${isSubMenuActive(item.path)}`}
                   >
-                    <span className="text-white">{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="text-md flex-shrink-0">{item.icon}</span>
+                    <span className="break-words whitespace-normal flex-1">{item.label}</span>
                   </Link>
                 ))}
               </div>
@@ -217,27 +228,42 @@ const Layout = () => {
 
   const studentMenu = (
     <>
-      <div className="mt-2">
+      <Link
+        to="/student_dashboard"
+        className={`group flex items-center px-4 py-3 text-md font-medium transition-all duration-200 ${isActive('/student_dashboard')}`}
+      >
+        <div className="flex items-center">
+          <span className="ml-2">Trang chủ</span>
+        </div>
+      </Link>
+
+      <div className="mt-2 border-t border-gray-600 pt-2">
+        <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Lớp học của tôi
+        </div>
         {studentClass.map((cls) => (
-          <div key={cls.id} className="mb-2">
+          <div key={cls.id} className="mb-1">
             <button
               onClick={() => setOpenClass(openClass === cls.id ? null : cls.id)}
-              className="flex justify-between items-center w-full text-left text-white hover:bg-[#2563EB] px-2 py-2 rounded-md"
+              className="flex justify-between items-center w-full text-left px-4 py-3 text-md text-white hover:bg-gray-700 transition-colors duration-200"
             >
-              <span>{cls.name} - {cls.subject_name}</span>
-              {openClass === cls.id ? <DownOutlined /> : <RightOutlined />}
+              <div className="flex items-center flex-1 min-w-0">
+                <span className="break-words whitespace-normal text-left flex-1">
+                  {cls.subject_name}
+                </span>
+              </div>
+              {openClass === cls.id ? <DownOutlined className="text-xs flex-shrink-0 ml-2" /> : <RightOutlined className="text-xs flex-shrink-0 ml-2" />}
             </button>
-
             {openClass === cls.id && (
-              <div className="ml-4 mt-1 space-y-1">
+              <div className="ml-2 mt-1 space-y-1 border-l border-gray-600">
                 {subStudentMenuItems(cls.id).map((item) => (
                   <Link
                     key={item.id}
                     to={item.path}
-                    className={`flex items-center gap-2 text-sm px-2 py-1 rounded-md ${isActive(item.path)}`}
+                    className={`flex items-center gap-3 text-md px-4 py-2 mx-2 rounded transition-all duration-200 ${isSubMenuActive(item.path)}`}
                   >
-                    <span className="text-white">{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="text-md flex-shrink-0">{item.icon}</span>
+                    <span className="break-words whitespace-normal flex-1">{item.label}</span>
                   </Link>
                 ))}
               </div>
@@ -250,35 +276,48 @@ const Layout = () => {
 
   const adminMenu = (
     <>
-      <Link to="/admin/user_list" className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive('/user_list')}`}>
+      <Link
+        to="/admin_dashboard"
+        className={`group flex items-center px-4 py-3 text-md font-medium transition-all duration-200 ${isActive('/admin_dashboard')}`}
+      >
+        <div className="flex items-center">
+          <span className="ml-2">Trang chủ</span>
+        </div>
+      </Link>
+
+      <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Quản trị hệ thống
+      </div>
+      <Link to="/admin/user_list" className={`group flex items-center px-4 py-3 text-md  text-md text-white hover:bg-gray-700 transition-colors duration-200 ${isActive('/user_list')}`}>
         Quản lý người dùng
       </Link>
-      <Link to="/admin/faculty_list" className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive('/faculty_list')}`}>
+      <Link to="/admin/faculty_list" className={`group flex items-center px-4 py-3 text-md  text-md text-white hover:bg-gray-700 transition-colors duration-200 ${isActive('/faculty_list')}`}>
         Quản lý khoa-viện
       </Link>
-      <Link to="/admin/major_list" className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive('/major_list')}`}>
+      <Link to="/admin/major_list" className={`group flex items-center px-4 py-3 text-md  text-md text-white hover:bg-gray-700 transition-colors duration-200 ${isActive('/major_list')}`}>
         Quản lý ngành học
       </Link>
-      <Link to="/admin/semester_list" className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive('/semester_list')}`}>
+      <Link to="/admin/semester_list" className={`group flex items-center px-4 py-3 text-md  text-md text-white hover:bg-gray-700 transition-colors duration-200 ${isActive('/semester_list')}`}>
         Quản lý kỳ học
       </Link>
-      <Link to="/admin/subject_list" className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive('/subject_list')}`}>
+      <Link to="/admin/subject_list" className={`group flex items-center px-4 py-3 text-md  text-md text-white hover:bg-gray-700 transition-colors duration-200 ${isActive('/subject_list')}`}>
         Quản lý học phần
       </Link>
-      <Link to="/admin/class_list" className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive('/class_list')}`}>
+      <Link to="/admin/class_list" className={`group flex items-center px-4 py-3 text-md  text-md text-white hover:bg-gray-700 transition-colors duration-200 ${isActive('/class_list')}`}>
         Quản lý lớp học
       </Link>
     </>
   );
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-200">
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'flex' : 'hidden'} md:flex md:flex-shrink-0`}>
         <div className="flex flex-col w-64 bg-[#111827]">
           <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
-              <h1 className="text-white text-xl font-bold">Hệ thống Bài tập</h1>
+              <img src="/public/Minimalist logo desi.png" alt="" className='h-[70px]' />
+              <h1 className="text-white text-xl font-bold ml-2">Elearning</h1>
             </div>
 
             <div className="mt-5 flex-grow flex flex-col">
@@ -288,8 +327,6 @@ const Layout = () => {
                 {user?.role === 'student' && studentMenu}
               </nav>
             </div>
-
-
           </div>
         </div>
       </div>
@@ -302,7 +339,7 @@ const Layout = () => {
             <div className="flex items-center">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-md text-white hover:bg-gray-100 md:hidden"
+                className="p-2 rounded-md text-white hover:bg-blue-600 md:hidden"
               >
                 {sidebarOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
               </button>
@@ -310,8 +347,9 @@ const Layout = () => {
                 {location.pathname.includes('dashboard') && 'Dashboard'}
                 {location.pathname.includes('assignment') && 'Bài thực hành'}
                 {location.pathname.includes('student') && 'Quản lý học sinh'}
-                {location.pathname.includes('material') && 'Tài liệu học tập'}
-                {location.pathname.includes('practice') && 'Bài tập & Kiểm tra'}
+                {location.pathname.includes('lesson') && 'Bài giảng'}
+                {location.pathname.includes('chapters') && 'Tài liệu học tập'}
+                {location.pathname.includes('practice') && 'Kiểm tra'}
                 {location.pathname.includes('discussion') && 'Thảo luận'}
                 {location.pathname.includes('grade') && 'Điểm số'}
               </h2>
@@ -320,7 +358,7 @@ const Layout = () => {
             <div className="flex items-center space-x-4">
               {/* Notifications */}
               <div className="relative">
-                <button className="p-2 text-white hover:bg-blue-400 rounded-full relative">
+                <button className="p-2 text-white hover:bg-blue-600 rounded-full relative transition-colors duration-200">
                   <BellOutlined className="text-lg" />
                   {notifications.filter(n => !n.read).length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -332,11 +370,11 @@ const Layout = () => {
 
               {/* User menu */}
               <div className="relative">
-                <button className="flex items-center space-x-2 text-white hover:text-gray-200">
+                <button className="flex items-center space-x-2 text-white hover:text-white">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <UserOutlined className="text-white text-sm" />
+                    <UserOutlined className="text-white text-md" />
                   </div>
-                  <span className="hidden md:block text-sm font-medium">
+                  <span className="hidden md:block text-md font-medium">
                     {user?.full_name || user?.username}
                   </span>
                 </button>
@@ -345,18 +383,18 @@ const Layout = () => {
               {/* Logout */}
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-1 text-white hover:text-white p-2 rounded-md hover:bg-blue-400"
+                className="flex items-center space-x-1 text-white hover:text-white p-2 rounded-md hover:bg-blue-600 transition-colors duration-200"
                 title="Đăng xuất"
               >
                 <LogoutOutlined />
-                <span className="hidden md:block text-sm">Đăng xuất</span>
+                <span className="hidden md:block text-md">Đăng xuất</span>
               </button>
             </div>
           </div>
         </header>
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4">
+        <main className="flex-1 overflow-y-auto bg-gray-100 p-4">
           <Outlet />
         </main>
       </div>

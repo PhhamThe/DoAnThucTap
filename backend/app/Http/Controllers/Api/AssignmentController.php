@@ -18,7 +18,7 @@ use function Laravel\Prompts\error;
 
 class AssignmentController extends Controller
 {
-    // Lấy danh sách
+
     public function index(Request $request)
     {
         $query = Assignment::query();
@@ -31,7 +31,7 @@ class AssignmentController extends Controller
         ]);
     }
 
-    // Thêm mới 
+
     public function store(Request $request)
     {
         try {
@@ -74,7 +74,6 @@ class AssignmentController extends Controller
         }
     }
 
-    // Cập nhật 
     public function update(Request $request, $id)
     {
         $assignment = Assignment::find($id);
@@ -94,7 +93,6 @@ class AssignmentController extends Controller
                 'file_upload' => 'nullable|file|max:102400'
             ]);
 
-            // Nếu có file mới upload thì xử lý và lưu thông tin file mới
             if ($request->hasFile('file_upload')) {
                 $filePath = $request->file('file_upload')->store('assignments', 'public');
                 $fileData = [
@@ -106,7 +104,6 @@ class AssignmentController extends Controller
 
                 $validated['file_upload'] = $fileData;
             } else {
-                // Nếu không có file mới thì giữ nguyên file_upload cũ
                 $validated['file_upload'] = $assignment->file_upload;
             }
 
@@ -126,7 +123,7 @@ class AssignmentController extends Controller
     }
 
 
-    // Xóa 
+
     public function destroy($id)
     {
         $assignment = Assignment::find($id);
@@ -201,7 +198,9 @@ class AssignmentController extends Controller
                 ->where('assignments.id', $assignmentId)
                 ->where('classes.teacher_id', $teacherId)
                 ->select([
+              
                     'students.*',
+                    'submissions.id as submission_id',
                     'submissions.status as submitted',
                     'submissions.updated_at as submitted_at'
                 ])

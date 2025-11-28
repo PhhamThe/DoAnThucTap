@@ -8,10 +8,25 @@ const LoginPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/dashboard');
+    const role = localStorage.getItem('role');
+
+    if (token && role) {
+      switch (role) {
+        case 'admin':
+          navigate('/admin_dashboard');
+          break;
+        case 'teacher':
+          navigate('/teacher_dashboard');
+          break;
+        case 'student':
+          navigate('/student_dashboard');
+          break;
+        default:
+          navigate('/login');
+      }
     }
   }, [navigate]);
+
 
   const [formData, setFormData] = useState({
     username: '',
@@ -20,7 +35,7 @@ const LoginPage = () => {
   });
 
   const [errLogin, setErrLogin] = useState('');
-  const [loading, setLoading] = useState(false); // 👈 state loading
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -35,7 +50,7 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrLogin('');
-    setLoading(true); 
+    setLoading(true);
     try {
       const response = await fetch(baseUrl + "api/login", {
         method: "POST",
@@ -55,7 +70,20 @@ const LoginPage = () => {
       localStorage.setItem('userId', data.user.id);
       toast.success(data.message);
 
-      navigate('/dashboard');
+      const userRole = data.user.role;
+      switch (userRole) {
+        case 'admin':
+          navigate('/admin_dashboard');
+          break;
+        case 'teacher':
+          navigate('/teacher_dashboard');
+          break;
+        case 'student':
+          navigate('/student_dashboard');
+          break;
+        default:
+          navigate('/dashboard');
+      }
     } catch (err) {
       console.error("Error:", err.message);
       setErrLogin("Có lỗi xảy ra, vui lòng thử lại");
@@ -65,8 +93,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="relative min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 bg-[url('/background2.jpg')] bg-cover bg-center blur-sm z-0"></div>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Đăng nhập</h2>
@@ -185,15 +214,6 @@ const LoginPage = () => {
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">Chưa có tài khoản?</span>
               </div>
-            </div>
-
-            <div className="mt-6">
-              <Link
-                to="/register"
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                Tạo tài khoản
-              </Link>
             </div>
           </div>
         </div>

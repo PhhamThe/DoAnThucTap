@@ -173,7 +173,7 @@ function User() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h2 className="text-xl font-semibold">Quản lý người dùng</h2>
                 <div className="flex items-center gap-2">
-                    <button onClick={() => setAddOpen(true)} className="px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-700">
+                    <button onClick={() => setAddOpen(true)} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-emerald-700">
                         Thêm người dùng
                     </button>
                 </div>

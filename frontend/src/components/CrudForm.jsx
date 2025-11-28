@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import LoadingIcon from './button/LoadingIcon'
 import { normalizeFileUpload, buildFileUrlFromUpload } from '../ulities/fileHelpers';
+
 export default function CrudForm({
     title = "",
     fields = [],
@@ -65,32 +66,34 @@ export default function CrudForm({
     async function handleSubmit(event) {
         event.preventDefault();
         setErrorMessage(null);
+        setLoading(true);
         try {
             await onSubmit?.(formValues);
-            setLoading(true);
         } catch (err) {
             setErrorMessage(err?.message || "Đã xảy ra lỗi.");
-        }
-        finally {
+        } finally {
             setLoading(false);
         }
     }
 
     function renderField(field) {
-        const { name, label, type = "text", required = false, options = [] } = field;
+        const { name, label, type = "text", required = false, options = [], spanFull = false } = field;
         const value = formValues[name] ?? "";
+
+        const fieldClasses = spanFull ? "md:col-span-2" : "";
 
         if (type === "select") {
             return (
-                <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div key={name} className={fieldClasses}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         {label}
+                        {required && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <select
                         name={name}
                         value={value}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
                         required={required}
                     >
                         <option value="">-- Chọn --</option>
@@ -107,46 +110,49 @@ export default function CrudForm({
                 </div>
             );
         }
+
         if (type === "textarea") {
             return (
-                <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div key={name} className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         {label}
+                        {required && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <textarea
                         name={name}
                         value={value}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 resize-none min-h-[120px]"
                         required={required}
                         rows={4}
                     />
                 </div>
             );
         }
+
         if (type === "file") {
             const fileObj = normalizeFileUpload(initialValues[name]);
             const fileUrl = buildFileUrlFromUpload(fileObj);
 
             return (
-                <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div key={name} className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         {label}
                     </label>
                     <input
                         name={name}
                         type="file"
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
 
                     {fileUrl && (
-                        <div className="mt-2 text-sm text-blue-600">
+                        <div className="mt-3">
                             <a
                                 href={fileUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:underline"
+                                className="inline-flex items-center px-3 py-2 text-sm bg-blue-50 text-blue-700  hover:bg-blue-100 transition-colors duration-200 border border-blue-200"
                             >
                                 📎 Xem file hiện tại
                             </a>
@@ -155,17 +161,36 @@ export default function CrudForm({
                 </div>
             );
         }
+
+        if (type === "checkbox") {
+            return (
+                <div key={name} className="flex items-center space-x-3 md:col-span-2">
+                    <input
+                        name={name}
+                        type="checkbox"
+                        checked={value}
+                        onChange={handleChange}
+                        className="w-5 h-5 text-blue-600 border-gray-300  focus:ring-blue-500"
+                    />
+                    <label className="text-sm font-medium text-gray-700">
+                        {label}
+                    </label>
+                </div>
+            );
+        }
+
         return (
-            <div key={name}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div key={name} className={fieldClasses}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                     {label}
+                    {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 <input
                     name={name}
                     type={type}
                     value={value}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                     required={required}
                 />
             </div>
@@ -173,43 +198,52 @@ export default function CrudForm({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
             <div
-                className="bg-white rounded-2xl w-full max-w-3xl p-8 shadow-2xl border border-gray-100"
+                className="bg-white  w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl border border-gray-200"
                 onClick={(e) => e.stopPropagation()}
             >
-                {title && <h3 className="text-2xl font-semibold text-gray-900 mb-8">{title}</h3>}
+                {/* Header */}
+                <div className="border-b border-gray-200 bg-gray-50 px-8 py-6 ">
+                    <h3 className="text-2xl font-semibold text-gray-900">{title}</h3>
+                </div>
 
-                {errorMessage && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                        {errorMessage}
-                    </div>
-                )}
+                {/* Form Content */}
+                <div className="p-8">
+                    {errorMessage && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200  text-red-700 text-sm">
+                            {errorMessage}
+                        </div>
+                    )}
 
-                <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {fields.map((f) => renderField(f))}
-                    </div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {fields.map((f) => renderField(f))}
+                        </div>
 
-                    <div className="mt-8 flex justify-end space-x-4">
-                        <button
-                            type="button"
-                            onClick={onCancel}
-                            className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors duration-200"
-                        >
-                            {submitLabel}
-                        </button>
-                    </div>
-                </form>
+                        {/* Action Buttons */}
+                        <div className="mt-8 flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                            <button
+                                type="button"
+                                onClick={onCancel}
+                                className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 
+                                 hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-6 py-3 text-sm font-medium text-white bg-blue-600 
+                                 hover:bg-blue-700 transition-all duration-200 hover:shadow-sm flex items-center justify-center min-w-[100px]"
+                                disabled={loading}
+                            >
+                                {loading && <LoadingIcon loading={true} />}
+                                {submitLabel}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            {loading && <LoadingIcon loading={true} />}
         </div>
     );
-
 }

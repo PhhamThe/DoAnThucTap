@@ -28,6 +28,10 @@ class Subject extends Model
     {
         return $this->belongsTo(Major::class);
     }
+    public function classes()
+    {
+        return $this->hasMany(ClassModel::class); // hoặc tên model class chính xác
+    }
 
     /**
      * Ví dụ quan hệ mở rộng: Môn học có nhiều bài tập (assignments)

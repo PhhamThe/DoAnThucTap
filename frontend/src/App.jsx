@@ -1,9 +1,9 @@
 // App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import LoginPage from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import TeacherDashboard from './pages/TeacherDashboard';
 import Grading from './pages/Grading';
 import User from './pages/users/User';
 import Layout from './pages/Layout';
@@ -15,20 +15,32 @@ import Class from './pages/classes/Class';
 import Assignment from './pages/assignment/AssignmentList';
 import ClassList from './pages/classes/ClassList';
 import AssignmentDetail from './pages/assignment/AssignmentDetail';
-import ClassDetail from './pages/classes/CLassDetail';
+import ClassDetail from './pages/classes/ClassDetail'; // SỬA TÊN FILE: CLassDetail -> ClassDetail
 import ClassStudent from './pages/classStudent/ClassStudent';
 import AssignmentList from './studentPages/assignmentList/AssignmentList';
 import AssignmentDetails from './studentPages/assignmentList/AssignmentDetails';
+import SubmissionDetail from './pages/assignment/SubmissionDetail';
+import Chapters from './studentPages/materials/Chapters';
+import ChapterDetail from './studentPages/materials/ChapterDetail';
+import TeacherChapters from './pages/materials/Chapters';
+import TeacherChapterDetail from './pages/materials/ChapterDetail';
+import LessonDetail from './studentPages/materials/LessonDetail';
+import StudentDashboard from './pages/StudentDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<Register />} />
 
         {/* Routes protected, có Sidebar */}
         <Route element={<Layout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin_dashboard" element={<AdminDashboard />} />
+          <Route path="/teacher_dashboard" element={<TeacherDashboard />} />
+          <Route path="/student_dashboard" element={<StudentDashboard />} />
           <Route path="/grading" element={<Grading />} />
           <Route path="/admin/user_list" element={<User />} />
           <Route path="/admin/faculty_list" element={<Faculty />} />
@@ -41,14 +53,17 @@ function App() {
           <Route path="/admin/assignment-list/:classId" element={<Assignment />} />
           <Route path="/admin/assignment-detail/:assignmentId" element={<AssignmentDetail />} />
           <Route path='/admin/student_by_class/:classId' element={<ClassStudent />} />
-          {/* /assignment-details/${item.id} */}
+          <Route path='/admin/submission_detail/:submissionId/:studentId' element={<SubmissionDetail />} />
+          <Route path='/admin/chapters/:classId' element={<TeacherChapters />} />
+          <Route path='/admin/chapter_details/:chapterId' element={<TeacherChapterDetail />} />
+          
+          {/* Student Routes - GIỮ NGUYÊN */}
           <Route path='/assignment-list/:classId' element={<AssignmentList />} />
           <Route path='/assignment-details/:assignmentId' element={<AssignmentDetails />} />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path='/chapters/:classId' element={<Chapters />} />
+          <Route path='/chapter_details/:chapterId' element={<ChapterDetail />} />
+          <Route path='/lesson/:lessonId' element={<LessonDetail />} />
         </Route>
-
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     </Router>
   );

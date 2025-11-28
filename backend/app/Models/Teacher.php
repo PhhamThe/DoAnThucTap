@@ -21,6 +21,7 @@ class Teacher extends Model
         'birth_date',
         'gender',
         'description',
+        'name'
     ];
 
 

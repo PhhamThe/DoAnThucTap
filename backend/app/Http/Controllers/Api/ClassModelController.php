@@ -49,7 +49,7 @@ class ClassModelController
                 ],
                 'description' => 'nullable|string',
                 'subject_id'  => 'required|exists:subjects,id',
-                'teacher_id'  => 'required|exists:users,id',
+                'teacher_id'  => 'required|exists:teachers,id',
                 'semester_id' => 'required|exists:semesters,id',
             ]);
 
@@ -87,7 +87,7 @@ class ClassModelController
                     'name'        => 'required|string|max:50|unique:classes,name,' . $id,
                     'description' => 'nullable|string',
                     'subject_id'  => 'required|exists:subjects,id',
-                    'teacher_id'  => 'required|exists:users,id',
+                    'teacher_id'  => 'required|exists:teachers,id',
                     'semester_id' => 'required|exists:semesters,id',
                 ]
             );

@@ -67,8 +67,8 @@ class UserAccountController extends Controller
 
                 Student::create([
                     'user_id' => $user->id,
-                    'name'    => $user->full_name,
                     'mssv'    => $mssv,
+                    'name'=>$user->fullname,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

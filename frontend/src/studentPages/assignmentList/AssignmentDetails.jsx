@@ -4,8 +4,8 @@ import { apiGet, apiPost } from "../../api/client";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
-    normalizeFileUpload,
     buildFileUrlFromUpload,
+    normalizeFileUpload,
 } from "../../ulities/fileHelpers";
 import { FileOutlined } from "@ant-design/icons";
 import EditorComponent from "../../components/editor/EditorComponent";
@@ -19,6 +19,9 @@ function AssignmentDetails() {
     const [content, setContent] = useState("");
     const [submission, setSubmission] = useState(null);
     const [submitted, setSubmitted] = useState(false);
+    const isOverDue = assignment?.due_date
+        ? new Date() > new Date(assignment.due_date)
+        : false;
 
     async function fetchAssignmentDetails() {
         try {
@@ -46,7 +49,7 @@ function AssignmentDetails() {
                 return;
             }
             setSubmission(json.data || null)
-            setContent(json.content)
+            setContent(json?.data?.content || "")
             if (json?.data?.status === "submitted") {
                 setSubmitted(true)
             }
@@ -93,7 +96,6 @@ function AssignmentDetails() {
     }
 
     async function handlerUpdateSubmission() {
-        console.log('file', file)
         const formData = new FormData();
         if (file) formData.append("file_upload", file);
         formData.append("content", content);
@@ -123,6 +125,7 @@ function AssignmentDetails() {
 
     const fileUpload = normalizeFileUpload(assignment?.file_upload);
     const fileUrl = buildFileUrlFromUpload(fileUpload);
+
     const studentFileUpload = normalizeFileUpload(submission?.file_upload);
     const studentFileUrl = buildFileUrlFromUpload(studentFileUpload);
 
@@ -139,11 +142,14 @@ function AssignmentDetails() {
                     </div>
                 ) : (
                     <div className="space-y-8">
-                        <div className="bg-white p-6 border-b border-gray-200">
-                            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                                {assignment.title}
-                            </h1>
-                            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <div className="bg-white p-6 border-b border-gray-200 space-y-6">
+
+                            <div>
+                                <h1 className="text-2xl font-bold text-gray-900">{assignment.title}</h1>
+                            </div>
+
+
+                            <div className="flex flex-wrap gap-6 text-sm text-gray-600">
                                 <div>
                                     <span className="font-medium">Ngày giao:</span>{" "}
                                     {assignment.created_at
@@ -157,33 +163,44 @@ function AssignmentDetails() {
                                         : "Không có hạn"}
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Assignment Description */}
-                        <div className="bg-white p-6 border-b border-gray-200">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-3">Mô tả bài thực hành</h2>
-                            <p className="text-gray-700 leading-relaxed">
-                                {assignment.description || "Không có mô tả."}
-                            </p>
-                        </div>
 
-                        {/* Teacher's Files */}
-                        {fileUrl && (
-                            <div className="bg-white p-6 border-b border-gray-200">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-3">Tài liệu từ giáo viên</h2>
-                                <a
-                                    href={fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-                                >
-                                    <FileOutlined />
-                                    <span>Tải xuống: {fileUpload?.name || "Tệp bài thực hành"}</span>
-                                </a>
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900 mb-2">Mô tả bài thực hành</h2>
+                                <p className="text-gray-700 leading-relaxed">
+                                    {assignment.description || "Không có mô tả."}
+                                </p>
                             </div>
-                        )}
 
-                        {/* Editor Section */}
+
+                            {fileUrl && (
+                                <div>
+                                    <h2 className="text-lg font-semibold text-gray-900 mb-2">Tài liệu từ giáo viên</h2>
+                                    <button
+                                        onClick={() => {
+                                            const link = document.createElement('a');
+                                            link.href = fileUrl;
+                                            link.download = fileUpload?.name || 'file_bai_thuc_hanh';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        }}
+                                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                                    >
+                                        <FileOutlined />
+                                        <span>{fileUpload?.name || "Tệp bài thực hành"}</span>
+                                    </button>
+                                </div>
+                            )}
+                            {isOverDue && (
+                                <div className="p-4 mb-4 text-red-700 bg-red-100 border border-red-300 rounded">
+                                    Đã hết hạn nộp bài. Bạn không thể nộp bài mới.
+                                </div>
+                            )}
+
+                        </div>
+
+
                         <div className="bg-white p-6 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">Nội dung bài làm</h2>
                             <EditorComponent
@@ -192,13 +209,13 @@ function AssignmentDetails() {
                             />
                         </div>
 
-                        {/* Submission Section */}
+
                         <div className="bg-white p-6">
                             <h2 className="text-lg font-semibold text-gray-900 mb-4">
                                 {submitted ? "Bài đã nộp" : "Nộp bài thực hành"}
                             </h2>
 
-                            {/* Submission Status */}
+
                             {submitted && submission && (
                                 <div className="mb-6 p-4 bg-green-50 border border-green-200">
                                     <div className="flex items-center gap-2 text-green-700 mb-2">
@@ -210,20 +227,25 @@ function AssignmentDetails() {
                                         </p>
                                     )}
                                     {studentFileUrl && (
-                                        <a
-                                            href={studentFileUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                                        <button
+                                            onClick={() => {
+                                                const link = document.createElement('a');
+                                                link.href = studentFileUrl;
+                                                link.download = studentFileUpload?.name || 'file_bai_nop';
+                                                document.body.appendChild(link);
+                                                link.click();
+                                                document.body.removeChild(link);
+                                            }}
+                                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm p-2 border border-gray-200 rounded hover:bg-gray-50"
                                         >
                                             <FileOutlined />
                                             <span>File đã nộp: {studentFileUpload?.name || "Tệp bài nộp"}</span>
-                                        </a>
+                                        </button>
                                     )}
                                 </div>
                             )}
 
-                            {/* File Input and Actions */}
+
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -231,6 +253,7 @@ function AssignmentDetails() {
                                     </label>
                                     <input
                                         type="file"
+                                        disabled={isOverDue}
                                         onChange={(e) => setFile(e.target.files[0])}
                                         className="block w-full text-sm text-gray-700 border border-gray-300 p-2"
                                     />
@@ -245,10 +268,10 @@ function AssignmentDetails() {
                                     {!submitted ? (
                                         <button
                                             onClick={handlerSubmitAssignment}
-                                            disabled={submitting}
+                                            disabled={submitting || isOverDue}
                                             className={`px-6 py-2 text-white transition ${submitting
-                                                    ? "bg-gray-400 cursor-not-allowed"
-                                                    : "bg-blue-600 hover:bg-blue-700"
+                                                ? "bg-gray-400 cursor-not-allowed"
+                                                : "bg-blue-600 hover:bg-blue-700"
                                                 }`}
                                         >
                                             {submitting ? "Đang nộp..." : "Nộp bài"}
@@ -256,10 +279,10 @@ function AssignmentDetails() {
                                     ) : (
                                         <button
                                             onClick={handlerUpdateSubmission}
-                                            disabled={submitting}
+                                            disabled={submitting || isOverDue}
                                             className={`px-6 py-2 text-white transition ${submitting
-                                                    ? "bg-gray-400 cursor-not-allowed"
-                                                    : "bg-blue-600 hover:bg-blue-700"
+                                                ? "bg-gray-400 cursor-not-allowed"
+                                                : "bg-blue-600 hover:bg-blue-700"
                                                 }`}
                                         >
                                             {submitting ? "Đang cập nhật..." : "Cập nhật bài nộp"}

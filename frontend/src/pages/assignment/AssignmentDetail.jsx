@@ -31,7 +31,7 @@ function AssignmentDetail() {
             {
                 key: 'submitted_at',
                 header: 'Thời điểm nộp',
-                render: (row) =>{return row.submitted ? new Date(row?.submitted_at).toLocaleString()  : '-'}
+                render: (row) => { return row.submitted ? new Date(row?.submitted_at).toLocaleString() : '-' }
             },
             {
                 key: 'status',
@@ -49,7 +49,7 @@ function AssignmentDetail() {
                 render: (row) => (
                     <button
                         className='p-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600'
-                        onClick={() => navigate(`/submission/${row.id}`)} 
+                        onClick={() => navigate(`/admin/submission_detail/${row.submission_id}/${row.id}`)}
                     >
                         Xem bài nộp
                     </button>
@@ -60,7 +60,7 @@ function AssignmentDetail() {
     );
 
     useEffect(() => {
-        void fetchSubmissions(); 
+        void fetchSubmissions();
     }, [currentPage]);
 
     async function fetchSubmissions() {

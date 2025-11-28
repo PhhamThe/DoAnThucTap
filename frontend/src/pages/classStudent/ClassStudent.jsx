@@ -19,16 +19,7 @@ function ClassStudent() {
     const [editingRow, setEditingRow] = useState(null);
     let { classId } = useParams();
 
-    //dùng useMemo để tối ưu hiệu năng, nếu không dùng vẫn có thể set các column bình thường nhưng nó sẽ phải tạo tại mới khi component rerender
-    //dùng useMemo thì nó sẽ không tạo lại khi không thay đổi
-    // const facultiesMap = useMemo(() => {
-    //     const map = {};
-    //     for (const f of faculties) {
-    //         map[f.id] = f.name;
-    //         return map;
-    //     }
-    // }, [faculties]);
-
+   
     const columns = useMemo( // Đây là các cột bảng hiển thị danh sách
         () => [
             {
@@ -158,7 +149,7 @@ function ClassStudent() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <h2 className="text-xl font-semibold">Danh sách sinh viên</h2>
                 <div className="flex items-center gap-2">
-                    <button onClick={() => setAddOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                      <button onClick={() => setAddOpen(true)} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
                         Thêm sinh viên
                     </button>
                 </div>

@@ -6,6 +6,7 @@ use App\Models\Chapter;
 use App\Models\ClassModel;
 use App\Models\ClassStudent;
 use App\Models\Student;
+use App\Models\Subject;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,11 +16,11 @@ use Illuminate\Validation\ValidationException;
 class ChaptersController
 {
 
-    public function index()
+    public function index(Request $request)
     {
+        $classId = $request->get('class_id');
         $userId = Auth::id();
         $teacherId = Teacher::where('user_id', $userId)->value('id');
-        $classId = ClassModel::where('teacher_id', $teacherId)->value('id');
 
         $chapters = Chapter::where('class_id', $classId)
             ->with('lessons')
@@ -36,7 +37,6 @@ class ChaptersController
         try {
             $userId = Auth::id();
             $studentId = Student::where('user_id', $userId)->value('id');
-
             $isInClass = ClassStudent::where('student_id', $studentId)
                 ->where('class_id', $classId)
                 ->exists();
@@ -60,16 +60,36 @@ class ChaptersController
                 ->orderBy('position')
                 ->get();
 
+            $previousChapterCompleted = true;
+
             foreach ($chapters as $chapter) {
-                $prevCompleted = true;
-                foreach ($chapter->lessons as $lesson) {
-                    if (!$prevCompleted) {
+
+                if (!$previousChapterCompleted) {
+                    foreach ($chapter->lessons as $lesson) {
                         $lesson->locked = true;
+                    }
+                    continue;
+                }
+
+                $allLessonsCompleted = true;
+                $prevLessonCompleted = true;
+
+                foreach ($chapter->lessons as $lesson) {
+                    if (!$prevLessonCompleted) {
+                        $lesson->locked = true;
+                        $allLessonsCompleted = false;
                     } else {
-                        $lesson->locked = false; 
-                        $prevCompleted = $lesson->is_completed ?? false;
+                        $lesson->locked = false;
+                    }
+
+                    $prevLessonCompleted = $lesson->is_completed ?? false;
+
+                    if (!$lesson->is_completed) {
+                        $allLessonsCompleted = false;
                     }
                 }
+
+                $previousChapterCompleted = $allLessonsCompleted;
             }
 
             return response()->json([
@@ -85,6 +105,7 @@ class ChaptersController
             ], 500);
         }
     }
+
 
 
 
@@ -285,6 +306,86 @@ class ChaptersController
             'success' => true,
             'message' => 'Lấy danh sách lớp học theo teacher thành công',
             'data' => $class
+        ]);
+    }
+
+    public function getAllTeachersChapters($classId)
+    {
+        $subject = Subject::join('classes', 'classes.subject_id', '=', 'subjects.id')
+            ->where('classes.id', $classId)
+            ->select('subjects.id')
+            ->first();
+
+        if (!$subject) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy môn học cho lớp này'
+            ], 404);
+        }
+
+        $subject_id = $subject->id;
+
+        $userId = Auth::id();
+        $currentTeacherId = Teacher::where('user_id', $userId)->value('id');
+
+        // Lấy tên lớp hiện tại
+        $currentClass = ClassModel::find($classId);
+
+        $chapter_list = Chapter::join('classes', 'classes.id', '=', 'chapters.class_id')
+            ->join('teachers', 'teachers.id', '=', 'classes.teacher_id')
+            ->join('subjects', 'subjects.id', '=', 'classes.subject_id')
+            ->where('classes.subject_id', $subject_id)
+            ->select(
+                'teachers.id as teacher_id',
+                'teachers.name as teacher_name',
+                'chapters.id',
+                'chapters.title',
+                'chapters.description',
+                'chapters.content',
+                'chapters.position',
+                'chapters.created_at',
+                'chapters.updated_at',
+                'classes.id as class_id',
+                'classes.name as class_name',
+                'subjects.name as subject_name'
+            )
+            ->orderBy('teachers.name')
+            ->orderBy('chapters.position')
+            ->get();
+
+        // Nhóm theo giáo viên
+        $groupedData = $chapter_list->groupBy('teacher_id')->map(function ($chapters, $teacherId) use ($currentTeacherId) {
+            $firstChapter = $chapters->first();
+            return [
+                'teacher_id' => $teacherId,
+                'teacher_name' => $firstChapter->teacher_name,
+                'teacher_email' => $firstChapter->teacher_email,
+                'is_current_teacher' => ($teacherId == $currentTeacherId),
+                'chapters' => $chapters->map(function ($chapter) {
+                    return [
+                        'id' => $chapter->id,
+                        'title' => $chapter->title,
+                        'description' => $chapter->description,
+                        'content' => $chapter->content,
+                        'position' => $chapter->position,
+                        'created_at' => $chapter->created_at,
+                        'updated_at' => $chapter->updated_at,
+                        'class_id' => $chapter->class_id,
+                        'class_name' => $chapter->class_name,
+                        'subject_name' => $chapter->subject_name
+                    ];
+                })->toArray()
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'current_teacher_id' => $currentTeacherId,
+                'current_class_name' => $currentClass->name ?? 'Không rõ lớp',
+                'subject_name' => $subject->name ?? 'Không rõ môn học',
+                'teachers' => $groupedData
+            ]
         ]);
     }
 }

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Chapter;
+use App\Models\ChapterProgress;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Student;
+use App\Models\SubjectProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Prompts\Progress;
@@ -31,40 +33,24 @@ class LearningProgressController extends Controller
             ]);
         }
 
-        $lesson = $lessonProgress->lesson;
-        $chapter = $lesson->chapter;
-        $subjectId = $chapter->class_id;
+        $chapterId = $lessonProgress->lesson->chapter_id;
+        $subjectId = $lessonProgress->lesson->chapter->class_id;
 
-        $lessonProgressPercent = $lessonProgress->is_completed ? 100 : 0;
+        $chapterProgress = ChapterProgress::where('student_id', $studentId)
+            ->where('chapter_id', $chapterId)
+            ->value('progress') ?? 0;
 
-        $chapterLessons = $chapter->lessons()->pluck('id');
-        $completedLessons = LessonProgress::where('student_id', $studentId)
-            ->whereIn('lesson_id', $chapterLessons)
-            ->where('is_completed', 1)
-            ->count();
-        $chapterProgressPercent = $chapterLessons->count()
-            ? round($completedLessons / $chapterLessons->count() * 100, 2)
-            : 0;
-
-        // Subject progress
-        $subjectChapters = Chapter::where('class_id', $chapter->class_id)->pluck('id'); // class_id đại diện subject
-        $subjectLessons = Lesson::whereIn('chapter_id', $subjectChapters)->pluck('id');
-        $completedSubjectLessons = LessonProgress::where('student_id', $studentId)
-            ->whereIn('lesson_id', $subjectLessons)
-            ->where('is_completed', 1)
-            ->count();
-        $subjectProgressPercent = $subjectLessons->count()
-            ? round($completedSubjectLessons / $subjectLessons->count() * 100, 2)
-            : 0;
+        $subjectProgress = SubjectProgress::where('student_id', $studentId)
+            ->where('subject_id', $subjectId)
+            ->value('progress') ?? 0;
 
         return response()->json([
             'success' => true,
-            'lesson_progress' => $lessonProgressPercent,
-            'chapter_progress' => $chapterProgressPercent,
-            'subject_progress' => $subjectProgressPercent,
+            'lesson_progress' => $lessonProgress->is_completed ? 100 : 0,
+            'chapter_progress' => $chapterProgress,
+            'subject_progress' => $subjectProgress,
         ]);
     }
-
 
     public function updateLessonProgress(Request $request)
     {
@@ -99,6 +85,63 @@ class LearningProgressController extends Controller
                     'watched_seconds' => $watched,
                     'is_completed' => $completed ? 1 : 0,
                     'completed_at' => $completed ? now() : null
+                ]
+            );
+
+            $chapterId = Lesson::where('id', $lessonId)->value('chapter_id');
+
+            // Lấy toàn bộ bài học trong chương
+            $chapterLessons = Lesson::where('chapter_id', $chapterId)->pluck('id');
+            $totalChapterLessons = $chapterLessons->count();
+
+            // Lấy số bài đã hoàn thành
+            $completedChapterLessons = LessonProgress::where('student_id', $studentId)
+                ->whereIn('lesson_id', $chapterLessons)
+                ->where('is_completed', 1)
+                ->count();
+
+            // Tính %
+            $chapterProgress = $totalChapterLessons > 0
+                ? round(($completedChapterLessons / $totalChapterLessons) * 100, 2)
+                : 0;
+
+
+            ChapterProgress::updateOrCreate(
+                [
+                    'student_id' => $studentId,
+                    'chapter_id' => $chapterId,
+                ],
+                [
+                    'progress' => $chapterProgress,
+                    'is_completed' => $chapterProgress == 100 ? 1 : 0,
+                    'completed_at' => $chapterProgress == 100 ? now() : null
+                ]
+            );
+
+            $subjectId = Chapter::where('id', $chapterId)->value('class_id'); // class_id = subject
+
+            $subjectChapters = Chapter::where('class_id', $subjectId)->pluck('id');
+            $subjectLessons = Lesson::whereIn('chapter_id', $subjectChapters)->pluck('id');
+            $totalSubjectLessons = $subjectLessons->count();
+
+            $completedSubjectLessons = LessonProgress::where('student_id', $studentId)
+                ->whereIn('lesson_id', $subjectLessons)
+                ->where('is_completed', 1)
+                ->count();
+
+            $subjectProgress = $totalSubjectLessons > 0
+                ? round(($completedSubjectLessons / $totalSubjectLessons) * 100, 2)
+                : 0;
+
+            SubjectProgress::updateOrCreate(
+                [
+                    'student_id' => $studentId,
+                    'subject_id' => $subjectId,
+                ],
+                [
+                    'progress' => $subjectProgress,
+                    'is_completed' => $subjectProgress == 100 ? 1 : 0,
+                    'completed_at' => $subjectProgress == 100 ? now() : null
                 ]
             );
 

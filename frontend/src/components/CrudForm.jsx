@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import LoadingIcon from './button/LoadingIcon'
+import LoadingIcon from './button/LoadingIcon';
 import { normalizeFileUpload, buildFileUrlFromUpload } from '../ulities/fileHelpers';
 
 export default function CrudForm({
@@ -16,6 +16,7 @@ export default function CrudForm({
         for (const f of flds || []) {
             if (f.type === "checkbox") vals[f.name] = init[f.name] ?? false;
             else if (f.type === "file") vals[f.name] = init[f.name] ?? null;
+            else if (f.type === "multiselect") vals[f.name] = init[f.name] ?? [];
             else vals[f.name] = init[f.name] ?? "";
         }
         return vals;
@@ -63,6 +64,14 @@ export default function CrudForm({
         }
     }
 
+    // Xử lý multiselect
+    function handleMultiSelectChange(fieldName, selectedOptions) {
+        setFormValues((prev) => ({
+            ...prev,
+            [fieldName]: selectedOptions
+        }));
+    }
+
     async function handleSubmit(event) {
         event.preventDefault();
         setErrorMessage(null);
@@ -81,6 +90,26 @@ export default function CrudForm({
         const value = formValues[name] ?? "";
 
         const fieldClasses = spanFull ? "md:col-span-2" : "";
+
+        // Multiselect field
+        if (type === "multiselect") {
+            const selectedValues = Array.isArray(value) ? value : [];
+
+            return (
+                <div key={name} className={fieldClasses}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {label}
+                        {required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <MultiSelect
+                        options={options}
+                        selectedValues={selectedValues}
+                        onChange={(selected) => handleMultiSelectChange(name, selected)}
+                        placeholder="Chọn các tùy chọn..."
+                    />
+                </div>
+            );
+        }
 
         if (type === "select") {
             return (
@@ -244,6 +273,94 @@ export default function CrudForm({
                     </form>
                 </div>
             </div>
+        </div>
+    );
+}
+
+// MultiSelect Component
+function MultiSelect({ options, selectedValues, onChange, placeholder = "Chọn các tùy chọn..." }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Đóng dropdown khi click bên ngoài
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const toggleOption = (optionValue) => {
+        const newSelectedValues = selectedValues.includes(optionValue)
+            ? selectedValues.filter(val => val !== optionValue)
+            : [...selectedValues, optionValue];
+        onChange(newSelectedValues);
+    };
+
+    const getSelectedLabels = () => {
+        return selectedValues.map(value => {
+            const option = options.find(opt => {
+                const optValue = opt.value ?? opt.id ?? opt.key;
+                return optValue === value;
+            });
+            return option?.label ?? option?.name ?? String(value);
+        });
+    };
+
+    const selectedLabels = getSelectedLabels();
+    const displayText = selectedLabels.length > 0
+        ? selectedLabels.join(", ")
+        : placeholder;
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            {/* Input trigger */}
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full px-4 py-3 border border-gray-300  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-left flex justify-between items-center"
+            >
+                <span className={`truncate ${selectedLabels.length === 0 ? 'text-gray-400' : 'text-gray-700'}`}>
+                    {displayText}
+                </span>
+                <svg
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {/* Dropdown menu */}
+            {isOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300  shadow-lg max-h-60 overflow-y-auto">
+                    {options.map((option) => {
+                        const optionValue = option.value ?? option.id ?? option.key;
+                        const optionLabel = option.label ?? option.name ?? String(optionValue);
+                        const isSelected = selectedValues.includes(optionValue);
+
+                        return (
+                            <label
+                                key={optionValue}
+                                className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-b border-gray-100 last:border-b-0"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => toggleOption(optionValue)}
+                                    className="w-4 h-4 text-blue-600 border-gray-300  focus:ring-blue-500"
+                                />
+                                <span className="ml-3 text-sm text-gray-700">{optionLabel}</span>
+                            </label>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }

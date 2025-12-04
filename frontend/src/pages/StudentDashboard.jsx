@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { apiGet } from '../api/client';
 
@@ -9,7 +8,6 @@ const StudentDashboard = () => {
         { id: 'past', label: 'QUÁ KHỨ' },
         { id: 'current', label: 'ĐANG HỌC' },
         { id: 'future', label: 'TƯƠNG LAI' },
-
     ];
 
     const [subjects, setSubjects] = useState([]);
@@ -24,13 +22,6 @@ const StudentDashboard = () => {
     useEffect(() => {
         fetchSubject();
     }, []);
-
-    const getProgressColor = (progress) => {
-        if (progress === 0) return 'bg-red-500';
-        if (progress < 50) return 'bg-yellow-500';
-        return 'bg-green-500';
-    };
-
 
     const today = new Date();
 
@@ -78,20 +69,18 @@ const StudentDashboard = () => {
                             key={subject.id}
                             className="bg-white border border-gray-300 p-4 transition-shadow"
                         >
-                            <h3 className="font-semibold text-gray-800 mb-2">{subject.name}</h3>
+                            <h3 className="font-semibold text-gray-800 mb-2">{subject.name}-{subject.subject_name}</h3>
                             <p className="text-sm text-gray-600 mb-3">({subject.code})</p>
 
                             <div className="flex items-center justify-between">
                                 <div className="w-3/4 bg-gray-200 rounded-full h-2">
                                     <div
-                                        className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
-                                            subject.progress
-                                        )}`}
-                                        style={{ width: `${subject.progress}%` }}
+                                        className="h-2 rounded-full bg-blue-500 transition-all duration-500 ease-out"
+                                        style={{ width: `${subject.progress || 0}%` }}
                                     ></div>
                                 </div>
                                 <span className="text-sm font-medium text-gray-700">
-                                    {subject.progress}%
+                                    {subject.progress || 0}%
                                 </span>
                             </div>
                         </div>

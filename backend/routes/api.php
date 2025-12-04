@@ -56,8 +56,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/get_all_submission/{assignmentId}', [AssignmentController::class, 'getAllSubmission']);
     Route::get('/submission_detail_by_teacher/{submissionId}', [SubmissionController::class, 'getSubmissionDetailByTeacher']);
     Route::resource('chapters', ChaptersController::class);
+    Route::get('/chapters/all-teachers/{classId}', [ChaptersController::class, 'getAllTeachersChapters']);
     Route::resource('lessons', LessonsController::class);
-    Route::get('/get_subject_timeline', [SubjectTimeLineController::class, 'getCourseTimeLineByTeacher']);
+    Route::get('/get_subject_timeline_by_teacher', [SubjectTimeLineController::class, 'getCourseTimeLineByTeacher']);
+    Route::get('/get_subject_timeline_by_student', [SubjectTimeLineController::class, 'getCourseTimeLineByStudent']);
 
     Route::post('/progress/update', [LearningProgressController::class, 'updateLessonProgress']);
     Route::post('/progress/mark-complete', [LearningProgressController::class, 'markLessonComplete']);

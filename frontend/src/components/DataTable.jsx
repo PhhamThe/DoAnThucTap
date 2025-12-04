@@ -86,7 +86,7 @@ export default function DataTable({
                                     {columns.map((column) => (
                                         <td
                                             key={column.key}
-                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-700"
+                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-600"
                                         >
                                             {column.render ? column.render(row) : row[column.key]}
                                         </td>
@@ -97,7 +97,7 @@ export default function DataTable({
                                                 {onView && (
                                                     <button
                                                         onClick={() => onView(row)}
-                                                        className="px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100  transition-colors duration-200 border border-blue-200 hover:border-blue-300"
+                                                        className="px-4 py-2 text-xs font-medium text-white bg-blue-600  transition-colors duration-200 "
                                                     >
                                                         Xem
                                                     </button>
@@ -105,7 +105,7 @@ export default function DataTable({
                                                 {onEdit && (
                                                     <button
                                                         onClick={() => onEdit(row)}
-                                                        className="px-4 py-2 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 transition-colors duration-200 border border-green-200 hover:border-green-300"
+                                                        className="px-4 py-2 text-xs font-medium text-white bg-green-600 transition-colors duration-200 border"
                                                     >
                                                         Sửa
                                                     </button>
@@ -113,7 +113,7 @@ export default function DataTable({
                                                 {onDelete && (
                                                     <button
                                                         onClick={() => onDelete(row)}
-                                                        className="px-4 py-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100  transition-colors duration-200 border border-red-200 hover:border-red-300"
+                                                        className="px-4 py-2 text-xs font-medium text-white bg-red-600 transition-colors duration-200 "
                                                     >
                                                         Xóa
                                                     </button>

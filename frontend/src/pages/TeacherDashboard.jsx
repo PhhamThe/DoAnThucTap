@@ -7,7 +7,7 @@ const TeacherDashboard = () => {
 
   const tabs = [
     { id: 'past', label: 'QUÁ KHỨ' },
-    { id: 'current', label: 'ĐANG HỌC' },
+    { id: 'current', label: 'ĐANG DẠY' },
     { id: 'future', label: 'TƯƠNG LAI' },
 
   ];
@@ -15,7 +15,7 @@ const TeacherDashboard = () => {
   const [subjects, setSubjects] = useState([]);
 
   async function fetchSubject() {
-    const json = await apiGet('api/get_subject_timeline');
+    const json = await apiGet('api/get_subject_timeline_by_teacher');
     if (json?.success) {
       setSubjects(json.data);
     }
@@ -25,11 +25,6 @@ const TeacherDashboard = () => {
     fetchSubject();
   }, []);
 
-  const getProgressColor = (progress) => {
-    if (progress === 0) return 'bg-red-500';
-    if (progress < 50) return 'bg-yellow-500';
-    return 'bg-green-500';
-  };
 
 
   const today = new Date();

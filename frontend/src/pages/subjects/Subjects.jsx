@@ -37,10 +37,11 @@ function Subject() {
                 render: (row) => row.credit ?? row.credits ?? '-',
             },
             {
-                key: 'major.name',
+                key: 'majors',
                 header: 'Ngành',
-                render: (row) => row.major.name ?? '-',
-            },
+                render: (row) => row.majors?.map(m => m.name).join(', ') || '-',
+            }
+
         ],
         []
     );
@@ -50,7 +51,14 @@ function Subject() {
     const formFields = useMemo(
         () => [
             { name: 'name', label: 'Tên môn học', required: true },
-            { name: 'major_id', label: 'Chọn ngành', required: true, type: 'select', options: majorList },
+            {
+                name: 'major_ids',
+                label: 'Chọn ngành',
+                required: true,
+                type: 'multiselect',
+                options: majorList
+            },
+
             { name: 'code', label: 'Mã môn học', required: true },
             { name: 'credit', label: 'Số tín chỉ', required: true },
             { name: 'description', label: 'Mô tả', required: false },
@@ -213,7 +221,11 @@ function Subject() {
                 <CrudForm
                     title="Sửa môn học"
                     fields={formFields}
-                    initialValues={editingSubject}
+                    initialValues={{
+                        ...editingSubject,
+                        major_ids: editingSubject.majors?.map(m => m.id) ?? []
+                    }}
+
                     onSubmit={handleUpdate}
                     onCancel={() => {
                         setEditOpen(false);

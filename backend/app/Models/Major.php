@@ -26,8 +26,10 @@ class Major extends Model
     /**
      * Quan hệ: 1 ngành có nhiều học phần (subjects)
      */
+  
     public function subjects()
-    {
-        return $this->hasMany(Subject::class);
-    }
+{
+    return $this->belongsToMany(Subject::class, 'major_subject');
+}
+
 }

@@ -82,11 +82,20 @@ function Chapters() {
                                 {/* Lessons List */}
                                 <div className="space-y-3">
                                     {chapter.lessons && chapter.lessons.length > 0 ? (
-                                        chapter.lessons.map((lesson) => (
+                                        chapter.lessons.map((lesson, index) => (
                                             <Link
                                                 key={lesson.id}
-                                                to={`/lesson/${lesson.id}`}
-                                                className="flex justify-between items-center p-4 border border-gray-100 rounded-md bg-gray-50 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 group">
+                                                to={lesson.locked ? "#" : `/lesson/${lesson.id}`}
+                                                onClick={(e) => {
+                                                    if (lesson.locked) {
+                                                        e.preventDefault();
+                                                        toast.error("Bạn phải hoàn thành các bài trước đó!");
+                                                    }
+                                                }}
+                                                className={`flex justify-between items-center p-4 border border-gray-100 rounded-md 
+                    bg-gray-50 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 group
+                    ${lesson.locked ? "opacity-50" : ""}`}
+                                            >
                                                 <div className="flex items-center space-x-3">
                                                     <FileTextOutlined className="text-gray-400 group-hover:text-blue-500 transition-colors" />
                                                     <h3 className="text-gray-800 font-medium group-hover:text-blue-700 transition-colors">
@@ -96,6 +105,7 @@ function Chapters() {
                                                 <RightOutlined className="text-gray-300 group-hover:text-blue-500 transition-colors text-sm" />
                                             </Link>
                                         ))
+
                                     ) : (
                                         <div className="text-center py-4 text-gray-400">
                                             <p>Chưa có bài học nào</p>

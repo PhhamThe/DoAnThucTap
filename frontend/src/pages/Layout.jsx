@@ -63,7 +63,6 @@ const Layout = () => {
   };
 
   const fetchNotifications = async () => {
-    // Mock data - thay bằng API call thực tế
     setNotifications([
       { id: 1, title: 'Bài tập mới', message: 'Có Bài tập mới trong lớp CS101', time: '5 phút trước', read: false },
       { id: 2, title: 'Deadline sắp đến', message: 'Bài tập lập trình hết hạn trong 2 ngày', time: '1 giờ trước', read: false },
@@ -104,9 +103,28 @@ const Layout = () => {
       : 'text-white hover:bg-gray-700 ';
 
   const isSubMenuActive = (path) =>
-    location.pathname === path
+    location.pathname.startsWith(path.replace(/\/[^/]*$/, ''))
       ? 'bg-[#1E40AF] text-white'
       : 'text-gray-300 hover:bg-gray-700';
+
+  // hàm để đóng menu khi chuyển lớp
+  const handleClassClick = (classId) => {
+    if (openClass === classId) {
+      setOpenClass(null);
+    } else {
+      setOpenClass(classId);
+    }
+  };
+
+  // hàm để xử lý click vào menu item
+  const handleMenuItemClick = (path, classId) => {
+    navigate(path, {
+      state: {
+        timestamp: Date.now(),
+        classId: classId
+      }
+    });
+  };
 
   const subMenuItems = (classId) => [
     {
@@ -195,7 +213,7 @@ const Layout = () => {
         {teacherClass.map((cls) => (
           <div key={cls.id} className="mb-1">
             <button
-              onClick={() => setOpenClass(openClass === cls.id ? null : cls.id)}
+              onClick={() => handleClassClick(cls.id)}
               className="flex justify-between items-center w-full text-left px-4 py-3 text-md text-white hover:bg-gray-700 transition-colors duration-200"
             >
               <div className="flex items-center flex-1 min-w-0">
@@ -209,14 +227,14 @@ const Layout = () => {
             {openClass === cls.id && (
               <div className="ml-2 mt-1 space-y-1 border-l border-gray-600">
                 {subMenuItems(cls.id).map((item) => (
-                  <Link
+                  <button
                     key={item.id}
-                    to={item.path}
-                    className={`flex items-center gap-3 text-md px-4 py-2 mx-2 transition-all duration-200 ${isSubMenuActive(item.path)}`}
+                    onClick={() => handleMenuItemClick(item.path, cls.id)}
+                    className={`flex items-center gap-3 text-md px-4 py-2 mx-2 transition-all duration-200 w-full text-left ${isSubMenuActive(item.path)}`}
                   >
                     <span className="text-md flex-shrink-0">{item.icon}</span>
                     <span className="break-words whitespace-normal flex-1">{item.label}</span>
-                  </Link>
+                  </button>
                 ))}
               </div>
             )}
@@ -244,7 +262,7 @@ const Layout = () => {
         {studentClass.map((cls) => (
           <div key={cls.id} className="mb-1">
             <button
-              onClick={() => setOpenClass(openClass === cls.id ? null : cls.id)}
+              onClick={() => handleClassClick(cls.id)}
               className="flex justify-between items-center w-full text-left px-4 py-3 text-md text-white hover:bg-gray-700 transition-colors duration-200"
             >
               <div className="flex items-center flex-1 min-w-0">
@@ -257,14 +275,14 @@ const Layout = () => {
             {openClass === cls.id && (
               <div className="ml-2 mt-1 space-y-1 border-l border-gray-600">
                 {subStudentMenuItems(cls.id).map((item) => (
-                  <Link
+                  <button
                     key={item.id}
-                    to={item.path}
-                    className={`flex items-center gap-3 text-md px-4 py-2 mx-2 rounded transition-all duration-200 ${isSubMenuActive(item.path)}`}
+                    onClick={() => handleMenuItemClick(item.path, cls.id)}
+                    className={`flex items-center gap-3 text-md px-4 py-2 mx-2 rounded transition-all duration-200 w-full text-left ${isSubMenuActive(item.path)}`}
                   >
                     <span className="text-md flex-shrink-0">{item.icon}</span>
                     <span className="break-words whitespace-normal flex-1">{item.label}</span>
-                  </Link>
+                  </button>
                 ))}
               </div>
             )}
@@ -311,7 +329,7 @@ const Layout = () => {
 
   return (
     <div className="flex h-screen bg-gray-200">
-      {/* Sidebar */}
+
       <div className={`${sidebarOpen ? 'flex' : 'hidden'} md:flex md:flex-shrink-0`}>
         <div className="flex flex-col w-64 bg-[#111827]">
           <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
@@ -331,9 +349,9 @@ const Layout = () => {
         </div>
       </div>
 
-      {/* Main content */}
+
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header */}
+
         <header className="bg-[#2563EB] shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center">
@@ -356,7 +374,7 @@ const Layout = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Notifications */}
+
               <div className="relative">
                 <button className="p-2 text-white hover:bg-blue-600 rounded-full relative transition-colors duration-200">
                   <BellOutlined className="text-lg" />
@@ -368,7 +386,7 @@ const Layout = () => {
                 </button>
               </div>
 
-              {/* User menu */}
+
               <div className="relative">
                 <button className="flex items-center space-x-2 text-white hover:text-white">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -380,7 +398,6 @@ const Layout = () => {
                 </button>
               </div>
 
-              {/* Logout */}
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-1 text-white hover:text-white p-2 rounded-md hover:bg-blue-600 transition-colors duration-200"
@@ -393,9 +410,8 @@ const Layout = () => {
           </div>
         </header>
 
-        {/* Main content area */}
         <main className="flex-1 overflow-y-auto bg-gray-100 p-4">
-          <Outlet />
+          <Outlet key={location.pathname + location.search} />
         </main>
       </div>
     </div>

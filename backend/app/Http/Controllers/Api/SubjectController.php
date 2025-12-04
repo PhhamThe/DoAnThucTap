@@ -4,107 +4,99 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subject;
-use Exception;
-use Illuminate\Http\JsonResponse;
+use DateTime;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
-use Mockery\Matcher\Subset;
 
 class SubjectController extends Controller
 {
 
-    // Lấy danh sách
     public function index()
     {
+        $subjects = Subject::with('majors')->paginate(5);
 
-        $subject = Subject::with('major')->paginate(5);
         return response()->json([
             'success' => true,
-            'statusCode' => 200,
-            'message' => 'Lấy danh sách học phần thành công',
-            'data' => $subject
+            'message' => 'Lấy danh sách môn học thành công',
+            'data' => $subjects
         ]);
     }
-    // Thêm mới
+
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'major_id' => 'required|exists:majors,id',
-                'name' => 'required|string|max:255|unique:subjects,name',
-                'description' => 'nullable|string|max:500',
-                'code' => 'required|String|max:255',
-                'credit' => 'required|integer'
-            ]);
-            $subject = Subject::create($validated);
-          
-            return response()->json([
-                'success' => true,
-                'statusCode' => 201,
-                'message' => 'Tạo học phần thành công',
-                'data' => $subject
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'statusCode' => 400,
-                'message' => 'Thông tin không hợp lệ',
-                'errors' => $e->errors(),
-            ], 400);
-        }
-    }
-    //Sửa 
-    public function update(Request $request, $id): JsonResponse{
-        $subject = Subject::find(id: $id);
-        if(!$subject){
-            return response() -> json(data:[
-                'success' => false,
-                'statusCode' => 404,
-                'message' => 'Không tin thấy học phần'
-            ],status:404);
-        }
-        try{
-            $validated = $request->validate(rules:[
-                'major_id'  => 'sometimes|required|exists:majors,id',
-                'code'      => 'sometimes|required|string|max:255',
-                'name'      => 'sometimes|required|string|max:255|unique:subjects,name,' .$id,
-                'description' => 'nullable|string|max:500',
-                'credit'    => 'sometimes|required|integer',
-            ]);
-            $subject->update($validated);
-            $subject->load(relations:'major');
-            return response() ->json(data:[
-                'success' => true,
-                'statusCode' => 200,
-                'message' => 'Cập nhật thành công',
-                'data' => $subject,
-            ]);
-        }
-        catch(ValidationException $e){
-            return response() ->json(data:[
-                'success' => false,
-                'statusCode' => 400,
-                'message' => 'Thông tin không hợp lệ',
-                'errors' => $e->errors()
-            ],status:400);
-        }
-    }
+        $validated = $request->validate([
+            'major_ids'   => 'required|array',
+            'major_ids.*' => 'exists:majors,id',
+            'name'        => 'required|string|max:255|unique:subjects,name',
+            'code'        => 'required|string|max:255|unique:subjects,code',
+            'credit'      => 'required|integer',
+            'description' => 'nullable|string|max:500',
+        ]);
+        $subject = Subject::create([
+            'name'        => $validated['name'],
+            'code'        => $validated['code'],
+            'credit'      => $validated['credit'],
+            'description' => $validated['description'] ?? null,
+        ]);
 
-    //Xóa
-    public function destroy($id){
-        $subject = Subject::find(id: $id);
-        if(!$subject){
-            return response() ->json(data:[
-                'success' =>false,
-                'statusCode' => 404,
-                'message' => 'Không tìm thấy học phần'
-            ],status:404);
-        }
-        $subject->delete();
+        // Gán nhiều ngành
+        $subject->majors()->sync($validated['major_ids']);
+
         return response()->json([
             'success' => true,
-            'statusCode' => 200,
-            'message' => 'Xóa học phần thành công'
+            'message' => 'Tạo môn học thành công',
+            'data'    => $subject->load('majors'),
+        ], 201);
+    }
+
+
+    public function update(Request $request, $id)
+    {
+        $subject = Subject::find($id);
+        if (!$subject) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy môn học'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'major_ids'   => 'sometimes|array',
+            'major_ids.*' => 'exists:majors,id',
+            'name'        => 'sometimes|required|string|max:255|unique:subjects,name,' . $id,
+            'code'        => 'sometimes|required|string|max:255|unique:subjects,code,' . $id,
+            'credit'      => 'sometimes|required|integer',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $subject->update($validated);
+
+        if (isset($validated['major_ids'])) {
+            $subject->majors()->sync($validated['major_ids']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật thành công',
+            'data'    => $subject->load('majors'),
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $subject = Subject::find($id);
+        if (!$subject) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy môn học'
+            ], 404);
+        }
+
+        $subject->majors()->detach();
+        $subject->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Xóa môn học thành công'
         ]);
     }
 }

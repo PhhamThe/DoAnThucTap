@@ -4,15 +4,15 @@ import { apiGet } from '../api/client';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState('current');
-
+  const [subjects, setSubjects] = useState([]);
   const tabs = [
-    { id: 'past', label: 'QUÁ KHỨ' },
-    { id: 'current', label: 'ĐANG DẠY' },
-    { id: 'future', label: 'TƯƠNG LAI' },
+    { name: 'past', label: 'QUÁ KHỨ' },
+    { name: 'current', label: 'ĐANG DẠY' },
+    { name: 'future', label: 'TƯƠNG LAI' },
 
   ];
 
-  const [subjects, setSubjects] = useState([]);
+
 
   async function fetchSubject() {
     const json = await apiGet('api/get_subject_timeline_by_teacher');
@@ -56,9 +56,9 @@ const TeacherDashboard = () => {
         <div className="flex s bg-white mb-6">
           {tabs.map((tab) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-center font-medium transition-colors ${activeTab === tab.id ? 'bg-blue-800 text-white' : 'text-white bg-blue-500'
+              key={tab.name}
+              onClick={() => setActiveTab(tab.name)}
+              className={`flex-1 py-2 text-center font-medium transition-colors ${activeTab === tab.name ? 'bg-blue-800 text-white' : 'text-white bg-blue-500'
                 }`}
             >
               {tab.label}
@@ -75,7 +75,7 @@ const TeacherDashboard = () => {
               <h3 className="font-semibold text-gray-800 mb-2">{subject.name}</h3>
               <p className="text-sm text-gray-600 mb-3">({subject.code})</p>
 
-              
+
             </div>
           ))}
         </div>

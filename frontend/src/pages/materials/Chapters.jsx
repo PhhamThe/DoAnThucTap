@@ -34,10 +34,9 @@ function Chapters() {
             },
             { key: 'description', header: 'Mô tả' },
             {
-                key: 'teacher_name',
-                header: 'Giáo viên',
-                render: (row) => row.teacher?.name || 'Chưa có'
-            },
+                key: 'is_public', header: 'Trạng thái',
+                render: (row) => row.is_public === 1 ? 'Công khai' : 'Riêng tư'
+            }
         ],
         []
     );
@@ -49,6 +48,7 @@ function Chapters() {
             { name: 'content', label: 'Nội dung', type: 'textarea' },
             { name: 'video_url', label: 'Video', type: 'file' },
             { name: 'attachment', label: 'Tài liệu', type: 'file' },
+            { name: 'is_public', label: 'Công khai?', type: 'checkbox' }
         ],
         []
     );
@@ -254,28 +254,22 @@ function Chapters() {
 
                     {/* Phần chương của các giáo viên khác */}
                     <div className="bg-white  p-6">
-                        <h3 className="text-lg font-semibold mb-4 text-gray-700">
-                            Chương của giáo viên khác
-                        </h3>
-
-                        {allTeachersData.length === 0 ? (
-                            <p className="text-gray-500 italic">Chưa có chương từ giáo viên khác</p>
-                        ) : (
+                        {allTeachersData.length > 0 && (
                             <div className="space-y-6">
                                 {allTeachersData.map((teacherGroup) => (
-                                    <div key={teacherGroup.teacher_id} className="  p-4">
+                                    <div key={teacherGroup.teacher_id} className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
                                             <div>
-                                                <h4 className="font-semibold text-lg">{teacherGroup.teacher_name || 'Không rõ'}</h4>                                               
+                                                <h4 className="font-semibold text-lg">{teacherGroup.teacher_name || 'Không rõ'}</h4>
                                             </div>
                                         </div>
 
                                         {(!teacherGroup.chapters || teacherGroup.chapters.length === 0) ? (
                                             <p className="text-gray-500 italic pl-13">Giáo viên này chưa tạo chương nào</p>
                                         ) : (
-                                            <ul className="space-y-2 pl-13">
+                                            <ul className="space-y-2">
                                                 {teacherGroup.chapters.map((chapter) => (
-                                                    <li key={chapter.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                                                    <li key={chapter.id} className="flex items-center justify-between ">
                                                         <div className="flex-1">
                                                             <span className="font-medium">{chapter.title}</span>
                                                             {chapter.description && (

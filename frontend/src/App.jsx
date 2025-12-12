@@ -27,6 +27,7 @@ import TeacherChapterDetail from './pages/materials/ChapterDetail';
 import LessonDetail from './studentPages/materials/LessonDetail';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Quizzes from './pages/quizzes/Quizzes';
 
 function App() {
   return (
@@ -56,7 +57,7 @@ function App() {
           <Route path='/admin/submission_detail/:submissionId/:studentId' element={<SubmissionDetail />} />
           <Route path='/admin/chapters/:classId' element={<TeacherChapters />} />
           <Route path='/admin/chapter_details/:chapterId' element={<TeacherChapterDetail />} />
-          
+          <Route path='/admin/quizzes/:classId' element={<Quizzes />} />
           {/* Student Routes - GIỮ NGUYÊN */}
           <Route path='/assignment-list/:classId' element={<AssignmentList />} />
           <Route path='/assignment-details/:assignmentId' element={<AssignmentDetails />} />

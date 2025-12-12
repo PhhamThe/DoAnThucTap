@@ -16,10 +16,8 @@ use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\SubmissionController;
 use App\Http\Controllers\Api\LearningProgressController;
 use App\Http\Controllers\Api\SubjectTimeLineController;
-use App\Models\Assignment;
-use App\Models\ClassModel;
-use App\Models\Lesson;
-use App\Models\Submission;
+use App\Http\Controllers\Api\QizzesController;
+
 
 Route::post('login', [LoginController::class, 'login']);
 
@@ -60,6 +58,7 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('lessons', LessonsController::class);
     Route::get('/get_subject_timeline_by_teacher', [SubjectTimeLineController::class, 'getCourseTimeLineByTeacher']);
     Route::get('/get_subject_timeline_by_student', [SubjectTimeLineController::class, 'getCourseTimeLineByStudent']);
+    Route::resource('quizzes', QizzesController::class);
 
     Route::post('/progress/update', [LearningProgressController::class, 'updateLessonProgress']);
     Route::post('/progress/mark-complete', [LearningProgressController::class, 'markLessonComplete']);

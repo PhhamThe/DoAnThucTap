@@ -36,13 +36,13 @@ class AssignmentController extends Controller
     {
         try {
             $validated = $request->validate([
-
                 'class_id' => 'required|integer|exists:classes,id',
                 'title' => 'required|string|max:250',
                 'description' => 'nullable|string|max:1000',
-                'due_date' => 'required|date',
+                'due_date' => 'required|date|after_or_equal:today',
                 'file_upload' => 'nullable|file|max:102400'
             ]);
+
 
             $fileData = null;
             if ($request->hasFile('file_upload')) {
@@ -89,7 +89,7 @@ class AssignmentController extends Controller
                 'class_id' => 'required|integer|exists:classes,id',
                 'title' => 'required|string|max:250',
                 'description' => 'nullable|string|max:1000',
-                'due_date' => 'required|date',
+                'due_date' => 'required|date|after_or_equal:today',
                 'file_upload' => 'nullable|file|max:102400'
             ]);
 
@@ -193,12 +193,12 @@ class AssignmentController extends Controller
                 ->join('assignments', 'assignments.class_id', '=', 'classes.id')
                 ->leftJoin('submissions', function ($join) {
                     $join->on('submissions.assignment_id', '=', 'assignments.id')
-                        ->on('submissions.student_id', '=', 'students.id'); 
+                        ->on('submissions.student_id', '=', 'students.id');
                 })
                 ->where('assignments.id', $assignmentId)
                 ->where('classes.teacher_id', $teacherId)
                 ->select([
-              
+
                     'students.*',
                     'submissions.id as submission_id',
                     'submissions.status as submitted',

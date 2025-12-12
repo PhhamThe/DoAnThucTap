@@ -185,7 +185,8 @@ class ChaptersController
                 'content' => 'nullable|string|max:1000',
                 'video_url' => 'sometimes|file|max:102400',
                 'attachment' => 'sometimes|file|max:102400',
-                'position' => 'integer'
+                'position' => 'integer',
+
             ]);
 
             $attachment = $chapter->attachment;
@@ -213,7 +214,7 @@ class ChaptersController
 
             $validated['attachment'] = $attachment;
             $validated['video_url'] = $video_url;
-
+            $chapter->is_public = $request->is_public === true ? 0 : 1;
             $chapter->update($validated);
 
             return response()->json([
@@ -335,6 +336,7 @@ class ChaptersController
             ->join('teachers', 'teachers.id', '=', 'classes.teacher_id')
             ->join('subjects', 'subjects.id', '=', 'classes.subject_id')
             ->where('classes.subject_id', $subject_id)
+            ->where('chapters.is_public', 1)
             ->select(
                 'teachers.id as teacher_id',
                 'teachers.name as teacher_name',
@@ -345,6 +347,7 @@ class ChaptersController
                 'chapters.position',
                 'chapters.created_at',
                 'chapters.updated_at',
+                'chapters.is_public',
                 'classes.id as class_id',
                 'classes.name as class_name',
                 'subjects.name as subject_name'

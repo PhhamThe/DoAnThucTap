@@ -14,10 +14,10 @@ export default function DataTable({
     const hasActions = Boolean(onEdit || onDelete || onView);
 
     return (
-        <div className="bg-white shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white  border border-gray-200 overflow-hidden">
             {/* Header */}
             {title && (
-                <div className="px-6 py-5 border-b border-gray-100 bg-gray-50">
+                <div className="px-6 py-5 border-b border-gray-200 bg-gray-50">
                     <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
                 </div>
             )}

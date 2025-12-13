@@ -22,7 +22,7 @@ export default function Pagination({
                 key={i}
                 onClick={() => onPageChange(i)}
                 className={`px-3 py-1 mx-1 rounded ${currentPage === i
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-blue-600 text-white"
                         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                     }`}
             >

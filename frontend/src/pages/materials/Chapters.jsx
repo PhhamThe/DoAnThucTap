@@ -194,12 +194,7 @@ function Chapters() {
                             Danh sách
                         </button>
                     </div>
-                    <button
-                        onClick={() => setAddOpen(true)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                        Thêm chương
-                    </button>
+
                 </div>
             </div>
 
@@ -218,6 +213,14 @@ function Chapters() {
                         }}
                         onDelete={handleDelete}
                         onView={(row) => navigate(`/admin/chapter_details/${row.id}`)}
+                        headerActions={
+                            <button
+                                onClick={() => setAddOpen(true)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                                Thêm chương
+                            </button>
+                        }
                     />
 
                     <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />

@@ -21,21 +21,19 @@ class QuizResult extends Model
         'score' => 'decimal:2',
     ];
 
-    // Thuộc về 1 đề thi
     public function quiz()
     {
         return $this->belongsTo(Quiz::class);
     }
 
-    // Thuộc về 1 sinh viên
     public function student()
     {
         return $this->belongsTo(Student::class);
     }
 
-    // 1 lần làm bài có nhiều đáp án được chọn
-    public function answers()
+    // Sửa tên relationship để khớp với Model ResultAnswer
+    public function resultAnswers()  // Đổi từ answers() thành resultAnswers()
     {
-        return $this->hasMany(StudentAnswer::class, 'result_id');
+        return $this->hasMany(ResultAnswer::class, 'result_id');
     }
 }

@@ -146,14 +146,7 @@ function ClassStudent() {
     }
     return (
         <div className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-                <h2 className="text-xl font-semibold">Danh sách sinh viên</h2>
-                <div className="flex items-center gap-2">
-                      <button onClick={() => setAddOpen(true)} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                        Thêm sinh viên
-                    </button>
-                </div>
-            </div>
+           
 
             <DataTable
                 columns={columns}
@@ -162,6 +155,14 @@ function ClassStudent() {
                 emptyMessage="Chưa có sinh viên nào trong lớp"
                 rowIndexBase={(currentPage - 1) * itemsPerPage}
                 onDelete={handleDelete}
+                 headerActions={
+                    <button
+                        onClick={() => setAddOpen(true)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                        Thêm sinh viên
+                    </button>
+                }
             />
 
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />

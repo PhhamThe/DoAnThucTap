@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Quiz;
+use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,7 +32,26 @@ class QizzesController extends Controller
             'message' => 'Lấy danh sách bài kiểm tra thành công'
         ]);
     }
+    public function getQuizByStudent(Request $request)
+    {
+        $classId = $request->get('class_id');
+        $userId = Auth::id();
+        $studentId = Student::where('user_id', $userId)->value('id');
 
+        $limit = $request->get('limit', 10);
+        $quizzes = Quiz::join('classes', 'classes.id', 'quizzes.class_id')
+            ->join('class_students', 'class_students.class_id', 'classes.id')
+            ->join('students', 'students.id', 'class_students.student_id')
+            ->where('classes.id', $classId)
+            ->where('students.id', $studentId)
+            ->paginate($limit);
+
+        return response()->json([
+            'success' => true,
+            'data' => $quizzes,
+            'message' => 'Lấy danh sách bài kiểm tra thành công'
+        ]);
+    }
     public function store(Request $request)
     {
         try {

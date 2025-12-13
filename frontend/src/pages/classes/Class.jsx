@@ -54,11 +54,6 @@ function Class() {
                 render: (row) => row.name ?? row.data?.name ?? '-',
             },
             {
-                key: 'description',
-                header: 'Mô tả',
-                render: (row) => row.description ?? row.data?.description ?? '-',
-            },
-            {
                 key: 'subject_id',
                 header: 'Học phần',
                 render: (row) =>
@@ -252,14 +247,7 @@ function Class() {
     }
     return (
         <div className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-                <h2 className="text-xl font-semibold">Quản lý lớp học</h2>
-                <div className="flex items-center gap-2">
-                    <button onClick={() => setAddOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                        Thêm lớp học
-                    </button>
-                </div>
-            </div>
+           
 
             <DataTable
                 columns={columns}
@@ -276,6 +264,14 @@ function Class() {
                     setEditOpen(true);
                 }}
                 onDelete={handleDelete}
+                 headerActions={
+                    <button
+                        onClick={() => setAddOpen(true)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                        Thêm lớp học
+                    </button>
+                }
             />
 
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />

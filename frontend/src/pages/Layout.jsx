@@ -193,7 +193,7 @@ const Layout = () => {
       id: 'practice',
       label: 'Kiểm tra',
       icon: <CodeOutlined className="text-sm" />,
-      path: `/class/${classId}/practice`
+      path: `/quizzes/${classId}`
     },
     {
       id: 'discussion',
@@ -209,8 +209,14 @@ const Layout = () => {
     },
   ];
 
+  // Chỉnh sửa: Thêm section header cho teacher và student menu giống admin
   const teacherMenu = (
     <>
+      {/* Thêm phần Quản lý giảng dạy giống admin */}
+      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Quản lý giảng dạy
+      </div>
+
       <Link
         to="/teacher_dashboard"
         className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-md ${isActive('/teacher_dashboard')}`}
@@ -219,51 +225,62 @@ const Layout = () => {
         <span className="break-words">Trang chủ</span>
       </Link>
 
-      <div className="mt-2">
+      <div className="mt-1">
         <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
           Lớp học của tôi
         </div>
-        {teacherClass.map((cls) => (
-          <div key={cls.id} className="mb-1">
-            <button
-              onClick={() => handleClassClick(cls.id)}
-              className="flex justify-between items-start w-full text-left px-3 py-2.5 rounded-md text-gray-300 hover:bg-blue-600 hover:text-white"
-            >
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <HomeOutlined className="text-sm flex-shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="break-words leading-tight">
-                    {cls.name} - {cls.subject.name}
+        {teacherClass.length > 0 ? (
+          teacherClass.map((cls) => (
+            <div key={cls.id} className="mb-1">
+              <button
+                onClick={() => handleClassClick(cls.id)}
+                className="flex justify-between items-center w-full text-left px-3 py-2.5 rounded-md text-gray-300 hover:bg-blue-600 hover:text-white"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <HomeOutlined className="text-sm flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="break-words text-sm leading-tight">
+                      {cls.name} - {cls.subject.name}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex-shrink-0 ml-2">
-                {openClass === cls.id ? <DownOutlined className="text-xs" /> : <RightOutlined className="text-xs" />}
-              </div>
-            </button>
+                <div className="flex-shrink-0 ml-2">
+                  {openClass === cls.id ? <DownOutlined className="text-xs" /> : <RightOutlined className="text-xs" />}
+                </div>
+              </button>
 
-            {openClass === cls.id && (
-              <div className="ml-8 mt-1 space-y-0.5">
-                {subMenuItems(cls.id).map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleMenuItemClick(item.path, cls.id)}
-                    className={`flex items-center gap-3 text-sm px-3 py-2 rounded-md w-full text-left ${isSubMenuActive(item.path)}`}
-                  >
-                    <span className="text-sm flex-shrink-0">{item.icon}</span>
-                    <span className="break-words">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+              {openClass === cls.id && (
+                <div className="ml-8 mt-1 space-y-0.5">
+                  {subMenuItems(cls.id).map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleMenuItemClick(item.path, cls.id)}
+                      className={`flex items-center gap-3 text-sm px-3 py-2 rounded-md w-full text-left ${isSubMenuActive(item.path)}`}
+                    >
+                      <span className="text-sm flex-shrink-0">{item.icon}</span>
+                      <span className="break-words">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="px-3 py-2 text-sm text-gray-400">
+            Chưa có lớp học nào
           </div>
-        ))}
+        )}
       </div>
     </>
   );
 
   const studentMenu = (
     <>
+      {/* Thêm phần Học tập giống admin */}
+      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Học tập
+      </div>
+
       <Link
         to="/student_dashboard"
         className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-md ${isActive('/student_dashboard')}`}
@@ -272,45 +289,51 @@ const Layout = () => {
         <span className="break-words">Trang chủ</span>
       </Link>
 
-      <div className="mt-2">
+      <div className="mt-1">
         <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
           Lớp học của tôi
         </div>
-        {studentClass.map((cls) => (
-          <div key={cls.id} className="mb-1">
-            <button
-              onClick={() => handleClassClick(cls.id)}
-              className="flex justify-between items-start w-full text-left px-3 py-2.5 rounded-md text-gray-300 hover:bg-blue-600 hover:text-white"
-            >
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <HomeOutlined className="text-sm flex-shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="break-words leading-tight">
-                    {cls.subject_name}
+        {studentClass.length > 0 ? (
+          studentClass.map((cls) => (
+            <div key={cls.id} className="mb-1">
+              <button
+                onClick={() => handleClassClick(cls.id)}
+                className="flex justify-between items-center w-full text-left px-3 py-2.5 rounded-md text-gray-300 hover:bg-blue-600 hover:text-white"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <HomeOutlined className="text-sm flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="break-words text-sm leading-tight">
+                      {cls.subject_name}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex-shrink-0 ml-2">
-                {openClass === cls.id ? <DownOutlined className="text-xs" /> : <RightOutlined className="text-xs" />}
-              </div>
-            </button>
+                <div className="flex-shrink-0 ml-2">
+                  {openClass === cls.id ? <DownOutlined className="text-xs" /> : <RightOutlined className="text-xs" />}
+                </div>
+              </button>
 
-            {openClass === cls.id && (
-              <div className="ml-8 mt-1 space-y-0.5">
-                {subStudentMenuItems(cls.id).map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleMenuItemClick(item.path, cls.id)}
-                    className={`flex items-center gap-3 text-sm px-3 py-2 rounded-md w-full text-left ${isSubMenuActive(item.path)}`}
-                  >
-                    <span className="text-sm flex-shrink-0">{item.icon}</span>
-                    <span className="break-words">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+              {openClass === cls.id && (
+                <div className="ml-8 mt-1 space-y-0.5">
+                  {subStudentMenuItems(cls.id).map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleMenuItemClick(item.path, cls.id)}
+                      className={`flex items-center gap-3 text-sm px-3 py-2 rounded-md w-full text-left ${isSubMenuActive(item.path)}`}
+                    >
+                      <span className="text-sm flex-shrink-0">{item.icon}</span>
+                      <span className="break-words">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="px-3 py-2 text-sm text-gray-400">
+            Chưa đăng ký lớp học nào
           </div>
-        ))}
+        )}
       </div>
     </>
   );
@@ -384,7 +407,8 @@ const Layout = () => {
 
           {/* Navigation */}
           <div className="flex flex-col flex-1 px-2 py-4 overflow-y-auto">
-            <nav className="flex-1 space-y-1">
+            <nav className="flex-1 space-y-2">
+              {/* Hiển thị menu theo role */}
               {user?.role === 'admin' && adminMenu}
               {user?.role === 'teacher' && teacherMenu}
               {user?.role === 'student' && studentMenu}
@@ -422,7 +446,6 @@ const Layout = () => {
               >
                 {sidebarOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
               </button>
-             
             </div>
 
             <div className="flex items-center space-x-4">

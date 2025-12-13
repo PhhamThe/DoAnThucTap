@@ -28,6 +28,10 @@ import LessonDetail from './studentPages/materials/LessonDetail';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Quizzes from './pages/quizzes/Quizzes';
+import CreateQuiz from './pages/quizzes/CreateQuiz';
+import StudentQuizzes from './studentPages/studentQuizzes/StudentQuizzes';
+import StudentQuizDetail from './studentPages/studentQuizzes/StudentQuizDetail';
+import QuizResultPage from './studentPages/studentQuizzes/QuizResultPage';
 
 function App() {
   return (
@@ -58,12 +62,16 @@ function App() {
           <Route path='/admin/chapters/:classId' element={<TeacherChapters />} />
           <Route path='/admin/chapter_details/:chapterId' element={<TeacherChapterDetail />} />
           <Route path='/admin/quizzes/:classId' element={<Quizzes />} />
+            <Route path='/admin/create-quiz/:quizId' element={<CreateQuiz />} />
           {/* Student Routes - GIỮ NGUYÊN */}
           <Route path='/assignment-list/:classId' element={<AssignmentList />} />
           <Route path='/assignment-details/:assignmentId' element={<AssignmentDetails />} />
           <Route path='/chapters/:classId' element={<Chapters />} />
           <Route path='/chapter_details/:chapterId' element={<ChapterDetail />} />
           <Route path='/lesson/:lessonId' element={<LessonDetail />} />
+          <Route path='/quizzes/:classId' element={<StudentQuizzes />} />
+          <Route path='/quiz-detail/:quizId' element={<StudentQuizDetail />} />
+          <Route path="/quiz-result/:resultId" element={<QuizResultPage />} />
         </Route>
       </Routes>
     </Router>

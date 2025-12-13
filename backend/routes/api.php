@@ -17,7 +17,8 @@ use App\Http\Controllers\Api\SubmissionController;
 use App\Http\Controllers\Api\LearningProgressController;
 use App\Http\Controllers\Api\SubjectTimeLineController;
 use App\Http\Controllers\Api\QizzesController;
-
+use App\Http\Controllers\Api\QuestionController;
+use App\Http\Controllers\Api\QuizStudentController;
 
 Route::post('login', [LoginController::class, 'login']);
 
@@ -58,8 +59,22 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('lessons', LessonsController::class);
     Route::get('/get_subject_timeline_by_teacher', [SubjectTimeLineController::class, 'getCourseTimeLineByTeacher']);
     Route::get('/get_subject_timeline_by_student', [SubjectTimeLineController::class, 'getCourseTimeLineByStudent']);
-    Route::resource('quizzes', QizzesController::class);
 
+    Route::resource('quizzes', QizzesController::class);
+    Route::get('/get_quizzes_by_student', [QizzesController::class, 'getQuizByStudent']);
+    // Routes cho Question
+    Route::get('/get_questions/{quizId}', [QuestionController::class, 'index']);
+    Route::put('/multi_questions/{quizId}', [QuestionController::class, 'updateMultiQuestion']);
+
+    // Routes cho học sinh làm bài thi
+    Route::prefix('student')->group(function () {
+        Route::get('/quiz/{quizId}/status', [QuizStudentController::class, 'checkQuizStatus']);
+        Route::get('/quiz/{quizId}', [QuizStudentController::class, 'getQuizForExam']);
+        Route::post('/quiz/{quizId}/submit', [QuizStudentController::class, 'submitQuiz']);
+        Route::get('/quiz/result/{resultId}', [QuizStudentController::class, 'getResult']);
+        Route::get('/class/{classId}/quizzes', [QuizStudentController::class, 'getAvailableQuizzes']);
+    });
+    // Learning Progress Routes
     Route::post('/progress/update', [LearningProgressController::class, 'updateLessonProgress']);
     Route::post('/progress/mark-complete', [LearningProgressController::class, 'markLessonComplete']);
     Route::get('/progress/get/{lessonId}', [LearningProgressController::class, 'getLessonProgress']);

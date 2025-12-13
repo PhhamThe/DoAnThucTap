@@ -6,14 +6,14 @@ import Pagination from "../../components/Pagination";
 import CrudForm from "../../components/CrudForm";
 import { apiGet, apiPost, apiPut, apiDelete } from "../../api/client";
 import { useParams } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 function Quizzes() {
     const [quizList, setQuizList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 5;
-
+    const navigate = useNavigate();
     const [isAddOpen, setAddOpen] = useState(false);
     const [isEditOpen, setEditOpen] = useState(false);
     const [editingQuiz, setEditingQuiz] = useState(null);
@@ -143,17 +143,13 @@ function Quizzes() {
 
     return (
         <div className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-                <h2 className="text-xl font-semibold">Quản lý đề thi</h2>
-                <button onClick={() => setAddOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                    Thêm đề thi
-                </button>
-            </div>
+
 
             <DataTable
                 columns={columns}
                 data={quizList}
                 loading={loading}
+                onView={(row) => navigate(`/admin/create-quiz/${row.id}`)}
                 emptyMessage="Chưa có đề thi"
                 rowIndexBase={(currentPage - 1) * itemsPerPage}
                 onEdit={(row) => {
@@ -167,6 +163,14 @@ function Quizzes() {
                 }}
 
                 onDelete={handleDelete}
+                headerActions={
+                    <button
+                        onClick={() => setAddOpen(true)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                        Thêm đề thi
+                    </button>
+                }
             />
 
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />

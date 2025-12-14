@@ -24,7 +24,7 @@ class QuizStudentController extends Controller
         try {
             $userId = Auth::id();
             $student = Student::where('user_id', $userId)->first();
-            
+
             if (!$student) {
                 return response()->json([
                     'success' => false,
@@ -42,7 +42,7 @@ class QuizStudentController extends Controller
 
             $now = now();
             $status = 'available';
-            
+
             if ($now < $quiz->start_time) {
                 $status = 'not_started';
             } elseif ($quiz->end_time && $now > $quiz->end_time) {
@@ -64,7 +64,6 @@ class QuizStudentController extends Controller
                     'quiz' => $quiz
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -82,7 +81,7 @@ class QuizStudentController extends Controller
         try {
             $userId = Auth::id();
             $student = Student::where('user_id', $userId)->first();
-            
+
             if (!$student) {
                 return response()->json([
                     'success' => false,
@@ -90,8 +89,8 @@ class QuizStudentController extends Controller
                 ], 404);
             }
 
-            $quiz = Quiz::with(['questions.answers' => function($query) {
-                $query->select('id', 'question_id', 'answer_text'); // Không lấy is_correct
+            $quiz = Quiz::with(['questions.answers' => function ($query) {
+                $query->select('id', 'question_id', 'answer_text');
             }])->find($quizId);
 
             if (!$quiz) {
@@ -106,7 +105,6 @@ class QuizStudentController extends Controller
                 'message' => 'Lấy đề thi thành công',
                 'data' => $quiz
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -122,9 +120,9 @@ class QuizStudentController extends Controller
     public function submitQuiz(Request $request, $quizId)
     {
         $validator = Validator::make($request->all(), [
-            'answers' => 'required|array',
+            'answers' => 'nullable|array',
             'answers.*.question_id' => 'required|exists:questions,id',
-            'answers.*.answer_ids' => 'required|array',
+            'answers.*.answer_ids' => 'nullable|array',
             'answers.*.answer_ids.*' => 'exists:answers,id'
         ]);
 
@@ -138,9 +136,7 @@ class QuizStudentController extends Controller
 
         DB::beginTransaction();
         try {
-            $userId = Auth::id();
-            $student = Student::where('user_id', $userId)->first();
-            
+            $student = Student::where('user_id', Auth::id())->first();
             if (!$student) {
                 return response()->json([
                     'success' => false,
@@ -156,7 +152,6 @@ class QuizStudentController extends Controller
                 ], 404);
             }
 
-            // Kiểm tra thời gian làm bài
             $now = now();
             if ($now < $quiz->start_time) {
                 return response()->json([
@@ -172,32 +167,33 @@ class QuizStudentController extends Controller
                 ], 403);
             }
 
-            // Kiểm tra học sinh đã làm bài chưa
-            $existingResult = QuizResult::where('quiz_id', $quizId)
+            $exists = QuizResult::where('quiz_id', $quizId)
                 ->where('student_id', $student->id)
-                ->first();
+                ->exists();
 
-            if ($existingResult) {
+            if ($exists) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Bạn đã nộp bài thi này'
                 ], 403);
             }
 
-            // Tính điểm
+            $totalQuestions = Question::where('quiz_id', $quizId)->count();
             $totalScore = 0;
             $correctCount = 0;
-            $totalQuestions = count($request->answers);
 
-            foreach ($request->answers as $answerData) {
+            foreach ($request->answers ?? [] as $answerData) {
                 $question = Question::with('answers')->find($answerData['question_id']);
                 if (!$question) continue;
 
-                $studentAnswerIds = $answerData['answer_ids'];
-                $correctAnswerIds = $question->answers->where('is_correct', true)->pluck('id')->toArray();
+                $studentAnswerIds = $answerData['answer_ids'] ?? [];
+                $correctAnswerIds = $question->answers
+                    ->where('is_correct', true)
+                    ->pluck('id')
+                    ->toArray();
 
-                // Kiểm tra câu trả lời đúng
                 $isCorrect = false;
+
                 if ($question->question_type === 'single') {
                     if (count($studentAnswerIds) === 1 && count($correctAnswerIds) === 1) {
                         $isCorrect = $studentAnswerIds[0] == $correctAnswerIds[0];
@@ -209,12 +205,11 @@ class QuizStudentController extends Controller
                 }
 
                 if ($isCorrect) {
-                    $totalScore += 1; // Mỗi câu đúng 1 điểm
+                    $totalScore++;
                     $correctCount++;
                 }
             }
 
-            // Tạo kết quả
             $result = QuizResult::create([
                 'quiz_id' => $quizId,
                 'student_id' => $student->id,
@@ -222,8 +217,9 @@ class QuizStudentController extends Controller
                 'completed_at' => $now
             ]);
 
-            // Lưu các câu trả lời
-            foreach ($request->answers as $answerData) {
+            foreach ($request->answers ?? [] as $answerData) {
+                if (empty($answerData['answer_ids'])) continue;
+
                 foreach ($answerData['answer_ids'] as $answerId) {
                     ResultAnswer::create([
                         'result_id' => $result->id,
@@ -243,10 +239,11 @@ class QuizStudentController extends Controller
                     'score' => $totalScore,
                     'correct_answers' => $correctCount,
                     'total_questions' => $totalQuestions,
-                    'percentage' => $totalQuestions > 0 ? round(($correctCount / $totalQuestions) * 100, 2) : 0
+                    'percentage' => $totalQuestions > 0
+                        ? round(($correctCount / $totalQuestions) * 100, 2)
+                        : 0
                 ]
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -257,6 +254,7 @@ class QuizStudentController extends Controller
         }
     }
 
+
     /**
      * Lấy kết quả bài thi
      */
@@ -265,7 +263,7 @@ class QuizStudentController extends Controller
         try {
             $userId = Auth::id();
             $student = Student::where('user_id', $userId)->first();
-            
+
             if (!$student) {
                 return response()->json([
                     'success' => false,
@@ -319,7 +317,7 @@ class QuizStudentController extends Controller
                     'student_answer_ids' => $studentAnswerIds,
                     'correct_answer_ids' => $correctAnswerIds,
                     'is_correct' => $isCorrect,
-                    'answers' => $question->answers->map(function($answer) use ($studentAnswerIds) {
+                    'answers' => $question->answers->map(function ($answer) use ($studentAnswerIds) {
                         return [
                             'id' => $answer->id,
                             'answer_text' => $answer->answer_text,
@@ -342,12 +340,11 @@ class QuizStudentController extends Controller
                         'completed_at' => $result->completed_at,
                         'total_questions' => count($detailedResults),
                         'correct_answers' => count(array_filter($detailedResults, fn($item) => $item['is_correct'])),
-                        'percentage' => count($detailedResults) > 0 ? 
+                        'percentage' => count($detailedResults) > 0 ?
                             round((count(array_filter($detailedResults, fn($item) => $item['is_correct'])) / count($detailedResults)) * 100, 2) : 0
                     ]
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -365,7 +362,7 @@ class QuizStudentController extends Controller
         try {
             $userId = Auth::id();
             $student = Student::where('user_id', $userId)->first();
-            
+
             if (!$student) {
                 return response()->json([
                     'success' => false,
@@ -375,11 +372,11 @@ class QuizStudentController extends Controller
 
             $quizzes = Quiz::where('class_id', $classId)
                 ->where('start_time', '<=', now())
-                ->where(function($query) {
+                ->where(function ($query) {
                     $query->where('end_time', '>=', now())
-                          ->orWhereNull('end_time');
+                        ->orWhereNull('end_time');
                 })
-                ->withCount(['quizResults' => function($query) use ($student) {
+                ->withCount(['quizResults' => function ($query) use ($student) {
                     $query->where('student_id', $student->id);
                 }])
                 ->orderBy('start_time', 'desc')
@@ -390,7 +387,6 @@ class QuizStudentController extends Controller
                 'message' => 'Lấy danh sách đề thi thành công',
                 'data' => $quizzes
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

@@ -44,6 +44,7 @@ class QizzesController extends Controller
             ->join('students', 'students.id', 'class_students.student_id')
             ->where('classes.id', $classId)
             ->where('students.id', $studentId)
+            ->select('quizzes.*')
             ->paginate($limit);
 
         return response()->json([

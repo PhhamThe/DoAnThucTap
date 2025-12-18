@@ -6,6 +6,7 @@ import Pagination from "../../components/Pagination";
 import { apiGet } from "../../api/client";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+
 function StudentQuizzes() {
     const [quizList, setQuizList] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -14,24 +15,84 @@ function StudentQuizzes() {
     const itemsPerPage = 5;
     const navigate = useNavigate();
     const { classId } = useParams();
+
+    // Hàm format ISO string thành định dạng Việt Nam
+    const formatDateTime = (isoString) => {
+        if (!isoString) return "-";
+        const date = new Date(isoString);
+        return date.toLocaleString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    // Hàm tính trạng thái quiz
+    const calculateQuizStatus = (quiz) => {
+        if (!quiz.start_time) return "not_set";
+        
+        const now = new Date();
+        const startTime = new Date(quiz.start_time);
+        
+        if (quiz.time_limit) {
+            const endTime = new Date(startTime.getTime() + (quiz.time_limit * 60000));
+            
+            if (now < startTime) return "upcoming";
+            if (now > endTime) return "ended";
+            return "active";
+        } else {
+            if (now < startTime) return "upcoming";
+            return "active";
+        }
+    };
+
     const columns = useMemo(
         () => [
-            { key: "title", header: "Tên đề thi", render: (row) => row.title ?? "-" },
+            { 
+                key: "title", 
+                header: "Tên đề thi", 
+                render: (row) => row.title ?? "-" 
+            },
             {
                 key: "time_limit",
-                header: "Thời gian (phút)",
-                render: (row) => row.time_limit ?? "-",
+                header: "Thời gian làm bài",
+                render: (row) => `${row.time_limit ?? 0} phút`,
             },
             {
                 key: "start_time",
-                header: "Bắt đầu",
-                render: (row) => row.start_time ?? "-",
+                header: "Thời gian bắt đầu",
+                render: (row) => formatDateTime(row.start_time),
             },
             {
                 key: "end_time",
-                header: "Kết thúc",
-                render: (row) => row.end_time ?? "-",
-            }
+                header: "Thời gian kết thúc",
+                render: (row) => {
+                    if (!row.start_time || !row.time_limit) return "-";
+                    const startTime = new Date(row.start_time);
+                    const endTime = new Date(startTime.getTime() + (row.time_limit * 60000));
+                    return formatDateTime(endTime);
+                },
+            },
+            {
+                key: "status",
+                header: "Trạng thái",
+                render: (row) => {
+                    const status = calculateQuizStatus(row);
+                    
+                    switch (status) {
+                        case "upcoming":
+                            return <span className="text-yellow-600">Chưa mở</span>;
+                        case "ended":
+                            return <span className="text-red-600">Đã kết thúc</span>;
+                        case "active":
+                            return <span className="text-green-600">Đang mở</span>;
+                        default:
+                            return <span className="text-gray-600">-</span>;
+                    }
+                },
+            },
         ],
         []
     );
@@ -39,14 +100,20 @@ function StudentQuizzes() {
     async function fetchQuizzes() {
         try {
             setLoading(true);
-            const json = await apiGet("api/get_quizzes_by_student", { page: currentPage, limit: itemsPerPage, class_id: classId });
+            const json = await apiGet("api/get_quizzes_by_student", { 
+                page: currentPage, 
+                limit: itemsPerPage, 
+                class_id: classId 
+            });
 
             if (json?.success === false) {
                 toast.error(json?.message || "Không thể lấy danh sách đề thi");
                 return;
             }
+            
             const container = json?.data ?? {};
             const items = container?.data ?? [];
+            
             setQuizList(items);
             setTotalPages(container?.last_page ?? 1);
         } catch (err) {
@@ -57,28 +124,71 @@ function StudentQuizzes() {
         }
     }
 
-
-
     useEffect(() => {
         fetchQuizzes();
-    }, [currentPage]);
+    }, [currentPage, classId]);
 
     const handlePageChange = (page) => setCurrentPage(page);
-   
+
+    // Xử lý khi click vào xem/bắt đầu thi
+    const handleViewQuiz = (row) => {
+        const status = calculateQuizStatus(row);
+        
+        if (status === "upcoming") {
+            const startTime = formatDateTime(row.start_time);
+            toast.warning(`Đề thi sẽ mở vào ${startTime}`);
+            return;
+        }
+        
+        if (status === "ended") {
+            toast.error("Đề thi đã kết thúc");
+            return;
+        }
+        
+        // Nếu đang active, điều hướng đến trang làm bài
+        navigate(`/quiz-detail/${row.id}`);
+    };
 
     return (
         <div className="p-6">
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-800 mb-2">Danh sách đề thi</h1>
+                <p className="text-gray-600">Các đề thi bạn có thể tham gia</p>
+            </div>
+
             <DataTable
                 columns={columns}
                 data={quizList}
                 loading={loading}
-                onView={(row) => navigate(`/quiz-detail/${row.id}`)}
-                titleOnView="Bắt đầu thi"
-                emptyMessage="Chưa có đề thi"
+                onView={handleViewQuiz}
+                titleOnView={(row) => {
+                    const status = calculateQuizStatus(row);
+                    switch (status) {
+                        case "upcoming": return "Chưa mở";
+                        case "ended": return "Đã kết thúc";
+                        case "active": return "Bắt đầu thi";
+                        default: return "Lỗi";
+                    }
+                }}
+                isViewDisabled={(row) => {
+                    const status = calculateQuizStatus(row);
+                    return status !== "active";
+                }}
+                emptyMessage="Chưa có đề thi nào"
                 rowIndexBase={(currentPage - 1) * itemsPerPage}
             />
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-            <ToastContainer position="bottom-right" autoClose={5000} />
+
+            <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                onPageChange={handlePageChange} 
+            />
+
+            <ToastContainer 
+                position="bottom-right" 
+                autoClose={5000} 
+                theme="colored"
+            />
         </div>
     );
 }

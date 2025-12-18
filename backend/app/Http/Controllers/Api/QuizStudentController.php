@@ -49,7 +49,6 @@ class QuizStudentController extends Controller
                 $status = 'ended';
             }
 
-            // Kiểm tra học sinh đã làm bài chưa
             $existingResult = QuizResult::where('quiz_id', $quizId)
                 ->where('student_id', $student->id)
                 ->first();
@@ -254,7 +253,6 @@ class QuizStudentController extends Controller
         }
     }
 
-
     /**
      * Lấy kết quả bài thi
      */
@@ -283,7 +281,6 @@ class QuizStudentController extends Controller
                 ], 404);
             }
 
-            // Lấy chi tiết kết quả
             $quizDetails = Quiz::with(['questions.answers'])
                 ->find($result->quiz_id);
 
@@ -370,12 +367,56 @@ class QuizStudentController extends Controller
                 ], 404);
             }
 
+            $now = now();
             $quizzes = Quiz::where('class_id', $classId)
-                ->where('start_time', '<=', now())
-                ->where(function ($query) {
-                    $query->where('end_time', '>=', now())
-                        ->orWhereNull('end_time');
+                ->where('start_time', '<=', $now)
+                ->where(function ($query) use ($now) {
+                    $query->where(function ($q) use ($now) {
+                        $q->whereNotNull('start_time')
+                         ->whereNotNull('time_limit')
+                         ->whereRaw("DATE_ADD(start_time, INTERVAL time_limit MINUTE) >= ?", [$now]);
+                    })->orWhere(function ($q) use ($now) {
+                        $q->whereNotNull('start_time')
+                         ->whereNull('time_limit');
+                    });
                 })
+                ->withCount(['quizResults' => function ($query) use ($student) {
+                    $query->where('student_id', $student->id);
+                }])
+                ->orderBy('start_time', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Lấy danh sách đề thi thành công',
+                'data' => $quizzes
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi lấy danh sách đề thi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Lấy danh sách tất cả quiz của lớp học
+     */
+    public function getAllQuizzes($classId)
+    {
+        try {
+            $userId = Auth::id();
+            $student = Student::where('user_id', $userId)->first();
+
+            if (!$student) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin học sinh'
+                ], 404);
+            }
+
+            $quizzes = Quiz::where('class_id', $classId)
                 ->withCount(['quizResults' => function ($query) use ($student) {
                     $query->where('student_id', $student->id);
                 }])

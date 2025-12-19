@@ -43,21 +43,7 @@ function Quizzes() {
                     });
                 },
             },
-            {
-                key: "end_time",
-                header: "Thời gian kết thúc",
-                render: (row) => {
-                    if (!row.end_time) return "Không giới hạn";
-                    const date = new Date(row.end_time);
-                    return date.toLocaleString('vi-VN', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                },
-            },
+
             {
                 key: "status",
                 header: "Trạng thái",
@@ -66,14 +52,14 @@ function Quizzes() {
 
                     const now = new Date();
                     const startTime = new Date(row.start_time);
-                    const endTime = row.end_time ? new Date(row.end_time) : null;
+                    const endTime = new Date(startTime.getTime()+ row.time_limit * 60000);
 
                     if (now < startTime) {
-                        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Sắp diễn ra</span>;
+                        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-md">Sắp diễn ra</span>;
                     } else if (endTime && now > endTime) {
-                        return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Đã kết thúc</span>;
+                        return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-md">Đã kết thúc</span>;
                     } else {
-                        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Đang diễn ra</span>;
+                        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">Đang diễn ra</span>;
                     }
                 },
             }
@@ -123,27 +109,9 @@ function Quizzes() {
                 toast.error(json?.message || "Không thể lấy danh sách đề thi");
                 return;
             }
-
             const container = json?.data ?? {};
-            const items = container?.data ?? [];
+            setQuizList(container?.data || []);
 
-            const enhancedItems = items.map(quiz => {
-                if (quiz.start_time && quiz.time_limit) {
-                    const startTime = new Date(quiz.start_time);
-                    const endTime = new Date(startTime.getTime() + (quiz.time_limit * 60000));
-                    return {
-                        ...quiz,
-                        end_time: endTime.toISOString(),
-                        status: calculateStatus(quiz)
-                    };
-                }
-                return {
-                    ...quiz,
-                    status: calculateStatus(quiz)
-                };
-            });
-
-            setQuizList(enhancedItems);
             setTotalPages(container?.last_page ?? 1);
         } catch (err) {
             toast.error("Lỗi khi lấy danh sách đề thi");
@@ -153,22 +121,6 @@ function Quizzes() {
         }
     }
 
-    const calculateStatus = (quiz) => {
-        if (!quiz.start_time) return "Chưa thiết lập";
-
-        const now = new Date();
-        const startTime = new Date(quiz.start_time);
-
-        if (quiz.time_limit) {
-            const endTime = new Date(startTime.getTime() + (quiz.time_limit * 60000));
-            if (now < startTime) return "upcoming";
-            if (now > endTime) return "ended";
-            return "active";
-        } else {
-            if (now < startTime) return "upcoming";
-            return "active";
-        }
-    };
 
     useEffect(() => {
         fetchQuizzes();
@@ -176,48 +128,12 @@ function Quizzes() {
 
     const handlePageChange = (page) => setCurrentPage(page);
 
-    // Format datetime-local thành Y-m-d H:i:s (giữ nguyên múi giờ)
-    const formatDateTimeForAPI = (datetimeLocal) => {
-        if (!datetimeLocal) return null;
-
-        // Tạo date object từ input (đã là local time)
-        const date = new Date(datetimeLocal);
-
-        // Lấy các phần tử theo múi giờ địa phương
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-
-        // Tạo chuỗi Y-m-d H:i:s (không chuyển đổi múi giờ)
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    // Format từ API sang datetime-local (cho form chỉnh sửa)
-    const formatDateTimeFromAPI = (apiDateTime) => {
-        if (!apiDateTime) return '';
-
-        const date = new Date(apiDateTime);
-
-        // Lấy các phần tử theo múi giờ địa phương
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-
-        // Tạo chuỗi cho input datetime-local: YYYY-MM-DDTHH:mm
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-    };
 
     async function handleCreate(data) {
         try {
             const formattedData = {
                 ...data,
                 class_id: classId,
-                start_time: formatDateTimeForAPI(data.start_time)
             };
 
             const json = await apiPost("api/quizzes", formattedData);
@@ -242,8 +158,7 @@ function Quizzes() {
         try {
             const formattedData = {
                 ...data,
-                class_id: classId,
-                start_time: formatDateTimeForAPI(data.start_time)
+                class_id: classId
             };
 
             const json = await apiPut(`api/quizzes/${editingQuiz.id}`, formattedData);
@@ -297,7 +212,6 @@ function Quizzes() {
                 onEdit={(row) => {
                     setEditingQuiz({
                         ...row,
-                        start_time: formatDateTimeFromAPI(row.start_time),
                     });
                     setEditOpen(true);
                 }}

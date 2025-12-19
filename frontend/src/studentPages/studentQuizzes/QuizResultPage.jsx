@@ -39,8 +39,8 @@ function QuizResultPage() {
     const { summary, detailed_results, quiz } = result;
 
     return (
-        <div className="max-w-3xl mx-auto p-4">
-            <div className="bg-white rounded-lg shadow p-5">
+        <div className="max-w-4xl mx-auto p-4">
+            <div className="bg-white border border-gray-300 p-5">
                 <div className="mb-6">
                     <h1 className="text-xl font-bold mb-1">Kết quả bài thi</h1>
                     <p className="text-gray-600 text-sm">{quiz.title}</p>
@@ -55,14 +55,7 @@ function QuizResultPage() {
                         <p className="text-green-600 text-sm">Câu đúng</p>
                         <p className="text-xl font-bold">{summary.correct_answers}/{summary.total_questions}</p>
                     </div>
-                    <div className="bg-purple-50 p-3 rounded text-center">
-                        <p className="text-purple-600 text-sm">Tỷ lệ</p>
-                        <p className="text-xl font-bold">{summary.percentage}%</p>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded text-center">
-                        <p className="text-gray-600 text-sm">Hoàn thành</p>
-                        <p className="text-sm">{new Date(summary.completed_at).toLocaleString()}</p>
-                    </div>
+                    
                 </div>
 
                 <h2 className="text-lg font-semibold mb-4">Chi tiết câu trả lời</h2>
@@ -109,7 +102,7 @@ function QuizResultPage() {
                     ))}
                 </div>
 
-                <div className="mt-8 pt-6 border-t text-center">
+                <div className="mt-8 pt-6 border-t border-gray-500 text-center">
                     <button
                         onClick={() => navigate(`/quizzes/${quiz.class_id}`)}
                         className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

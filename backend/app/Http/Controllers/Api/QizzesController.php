@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\Student;
 use App\Models\Teacher;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class QizzesController extends Controller // Sửa tên class
 {
@@ -25,7 +27,7 @@ class QizzesController extends Controller // Sửa tên class
             ->where('teachers.id', $teacherId)
             ->select('quizzes.*')
             ->paginate($limit);
-
+        
         return response()->json([
             'success' => true,
             'data' => $quizzes,
@@ -61,15 +63,11 @@ class QizzesController extends Controller // Sửa tên class
             $validated = $request->validate([
                 'class_id' => 'required|integer|exists:classes,id',
                 'title' => 'required|string|max:255',
-                'time_limit' => 'required|integer|min:1|max:180', // Tăng max lên 180 phút (3 tiếng)
-                'start_time' => 'required|date_format:Y-m-d H:i:s',
-                // Đã xóa 'end_time' vì không còn trong migration mới
+                'time_limit' => 'required|integer|min:1|max:180',
+                'start_time' => 'required',
             ]);
 
-            // Tự động tính end_time nếu cần (không lưu vào DB)
-            $startTime = new \DateTime($validated['start_time']);
-            $endTime = (clone $startTime)->modify("+{$validated['time_limit']} minutes");
-            
+          
             // Tạo quiz
             $quiz = Quiz::create($validated);
 
@@ -78,17 +76,16 @@ class QizzesController extends Controller // Sửa tên class
                 'message' => 'Tạo bài kiểm tra thành công',
                 'data' => [
                     'quiz' => $quiz,
-                    'calculated_end_time' => $endTime->format('Y-m-d H:i:s') // Chỉ để hiển thị
                 ]
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'statusCode' => 400,
                 'message' => 'Thông tin không hợp lệ',
                 'errors' => $e->errors()
             ], 400);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'statusCode' => 500,
@@ -105,8 +102,7 @@ class QizzesController extends Controller // Sửa tên class
                 'class_id' => 'required|integer|exists:classes,id',
                 'title' => 'required|string|max:255',
                 'time_limit' => 'required|integer|min:1|max:180',
-                'start_time' => 'required|date_format:Y-m-d H:i:s',
-                // Đã xóa 'end_time' vì không còn trong migration mới
+                'start_time' => 'required',
             ]);
 
             $teacherId = Teacher::where('user_id', Auth::id())->value('id');
@@ -147,14 +143,14 @@ class QizzesController extends Controller // Sửa tên class
                     'calculated_end_time' => $endTime->format('Y-m-d H:i:s')
                 ]
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'statusCode' => 400,
                 'message' => 'Thông tin không hợp lệ',
                 'errors' => $e->errors()
             ], 400);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'statusCode' => 500,
@@ -189,7 +185,7 @@ class QizzesController extends Controller // Sửa tên class
                 'success' => true,
                 'message' => 'Xoá bài kiểm tra thành công',
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'statusCode' => 500,

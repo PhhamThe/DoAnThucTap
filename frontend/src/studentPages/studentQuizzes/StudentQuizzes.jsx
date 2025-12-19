@@ -66,16 +66,6 @@ function StudentQuizzes() {
                 render: (row) => formatDateTime(row.start_time),
             },
             {
-                key: "end_time",
-                header: "Thời gian kết thúc",
-                render: (row) => {
-                    if (!row.start_time || !row.time_limit) return "-";
-                    const startTime = new Date(row.start_time);
-                    const endTime = new Date(startTime.getTime() + (row.time_limit * 60000));
-                    return formatDateTime(endTime);
-                },
-            },
-            {
                 key: "status",
                 header: "Trạng thái",
                 render: (row) => {
@@ -83,11 +73,11 @@ function StudentQuizzes() {
                     
                     switch (status) {
                         case "upcoming":
-                            return <span className="text-yellow-600">Chưa mở</span>;
+                            return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-md">Chưa mở</span>;
                         case "ended":
-                            return <span className="text-red-600">Đã kết thúc</span>;
+                            return <span className="px-2 py-1 bg-red-100 text-yellow-800 text-xs rounded-md">Đã kết thúc</span>;
                         case "active":
-                            return <span className="text-green-600">Đang mở</span>;
+                            return <span className="px-2 py-1 bg-green-100 text-yellow-800 text-xs rounded-md">Đang mở</span>;
                         default:
                             return <span className="text-gray-600">-</span>;
                     }
@@ -130,24 +120,7 @@ function StudentQuizzes() {
 
     const handlePageChange = (page) => setCurrentPage(page);
 
-    // Xử lý khi click vào xem/bắt đầu thi
-    const handleViewQuiz = (row) => {
-        const status = calculateQuizStatus(row);
-        
-        if (status === "upcoming") {
-            const startTime = formatDateTime(row.start_time);
-            toast.warning(`Đề thi sẽ mở vào ${startTime}`);
-            return;
-        }
-        
-        if (status === "ended") {
-            toast.error("Đề thi đã kết thúc");
-            return;
-        }
-        
-        // Nếu đang active, điều hướng đến trang làm bài
-        navigate(`/quiz-detail/${row.id}`);
-    };
+   
 
     return (
         <div className="p-6">
@@ -160,20 +133,7 @@ function StudentQuizzes() {
                 columns={columns}
                 data={quizList}
                 loading={loading}
-                onView={handleViewQuiz}
-                titleOnView={(row) => {
-                    const status = calculateQuizStatus(row);
-                    switch (status) {
-                        case "upcoming": return "Chưa mở";
-                        case "ended": return "Đã kết thúc";
-                        case "active": return "Bắt đầu thi";
-                        default: return "Lỗi";
-                    }
-                }}
-                isViewDisabled={(row) => {
-                    const status = calculateQuizStatus(row);
-                    return status !== "active";
-                }}
+                onView={(row)=>navigate(`/quiz-detail/${row.id}`)}
                 emptyMessage="Chưa có đề thi nào"
                 rowIndexBase={(currentPage - 1) * itemsPerPage}
             />
@@ -187,7 +147,7 @@ function StudentQuizzes() {
             <ToastContainer 
                 position="bottom-right" 
                 autoClose={5000} 
-                theme="colored"
+
             />
         </div>
     );

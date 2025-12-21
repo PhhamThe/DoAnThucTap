@@ -52,7 +52,7 @@ function Quizzes() {
 
                     const now = new Date();
                     const startTime = new Date(row.start_time);
-                    const endTime = new Date(startTime.getTime()+ row.time_limit * 60000);
+                    const endTime = new Date(startTime.getTime() + row.time_limit * 60000);
 
                     if (now < startTime) {
                         return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-md">Sắp diễn ra</span>;
@@ -206,7 +206,7 @@ function Quizzes() {
                 columns={columns}
                 data={quizList}
                 loading={loading}
-                onView={(row) => navigate(`/admin/create-quiz/${row.id}`)}
+                onView={(row) => navigate(`/admin/quiz-managment/${row.id}`)} // Thay đổi route ở đây
                 emptyMessage="Chưa có đề thi nào"
                 rowIndexBase={(currentPage - 1) * itemsPerPage}
                 onEdit={(row) => {

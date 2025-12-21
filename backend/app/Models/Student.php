@@ -27,8 +27,11 @@ class Student extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function quizResults()
+    {
+        return $this->hasMany(QuizResult::class, 'student_id');
+    }
 
-   
     /**
      * Accessor: Lấy tên đầy đủ từ bảng users (nếu có)
      */

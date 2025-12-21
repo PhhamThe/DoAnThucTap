@@ -5,6 +5,9 @@ use App\Http\Controllers\Api\ChaptersController;
 use App\Http\Controllers\Api\ClassModelController;
 use App\Http\Controllers\Api\ClassStudentController;
 use App\Http\Controllers\Api\FacultyController;
+use App\Http\Controllers\Api\GradeComponentController;
+use App\Http\Controllers\Api\GradeController;
+use App\Http\Controllers\Api\GradeRuleController;
 use App\Http\Controllers\Api\LessonsController;
 use App\Http\Controllers\Api\TeacherController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +39,9 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('classes', ClassModelController::class);
     Route::resource('teachers', TeacherController::class);
     Route::resource('assignments', AssignmentController::class);
+    Route::resource('grade-components', GradeComponentController::class);
+    Route::resource('grade-rules', GradeRuleController::class);
+    Route::get('grade-rules/for-class', [GradeRuleController::class, 'getForClass']);
 
 
     //Sinh viên 
@@ -59,12 +65,17 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('lessons', LessonsController::class);
     Route::get('/get_subject_timeline_by_teacher', [SubjectTimeLineController::class, 'getCourseTimeLineByTeacher']);
     Route::get('/get_subject_timeline_by_student', [SubjectTimeLineController::class, 'getCourseTimeLineByStudent']);
-
     Route::resource('quizzes', QizzesController::class);
+    Route::get('/quiz_stats/{quizId}', [QizzesController::class, 'getQuizStatistics']);
+    Route::get('/quiz_results/{quizId}', [QizzesController::class, 'getQuizResults']);
     Route::get('/get_quizzes_by_student', [QizzesController::class, 'getQuizByStudent']);
-    // Routes cho Question
     Route::get('/get_questions/{quizId}', [QuestionController::class, 'index']);
     Route::put('/multi_questions/{quizId}', [QuestionController::class, 'updateMultiQuestion']);
+
+
+
+    Route::get('/grades/class/{classId}/students', [GradeController::class, 'getStudentGrades']);
+    Route::post('/grades/class/{classId}/student/{studentId}/save', [GradeController::class, 'saveGrade']);
 
     // Routes cho học sinh làm bài thi
     Route::prefix('student')->group(function () {

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassStudent;
 use App\Models\Quiz;
+use App\Models\QuizResult;
 use App\Models\Student;
 use App\Models\Teacher;
 use Exception;
@@ -27,14 +29,14 @@ class QizzesController extends Controller // Sửa tên class
             ->where('teachers.id', $teacherId)
             ->select('quizzes.*')
             ->paginate($limit);
-        
+
         return response()->json([
             'success' => true,
             'data' => $quizzes,
             'message' => 'Lấy danh sách bài kiểm tra thành công'
         ]);
     }
-    
+
     public function getQuizByStudent(Request $request)
     {
         $classId = $request->get('class_id');
@@ -56,7 +58,7 @@ class QizzesController extends Controller // Sửa tên class
             'message' => 'Lấy danh sách bài kiểm tra thành công'
         ]);
     }
-    
+
     public function store(Request $request)
     {
         try {
@@ -67,7 +69,7 @@ class QizzesController extends Controller // Sửa tên class
                 'start_time' => 'required',
             ]);
 
-          
+
             // Tạo quiz
             $quiz = Quiz::create($validated);
 
@@ -216,12 +218,6 @@ class QizzesController extends Controller // Sửa tên class
                 ], 404);
             }
 
-            // Thêm thông tin tính toán end_time
-            $quiz->end_time = $quiz->end_time; // Sử dụng accessor từ Model
-            $quiz->is_active = $quiz->is_active;
-            $quiz->is_ended = $quiz->is_ended;
-            $quiz->is_upcoming = $quiz->is_upcoming;
-
             return response()->json([
                 'success' => true,
                 'data' => $quiz,
@@ -244,25 +240,15 @@ class QizzesController extends Controller // Sửa tên class
     {
         try {
             $teacherId = Teacher::where('user_id', Auth::id())->value('id');
-            
+
             $quizzes = Quiz::join('classes', 'classes.id', '=', 'quizzes.class_id')
                 ->join('teachers', 'teachers.id', '=', 'classes.teacher_id')
                 ->where('classes.id', $classId)
                 ->where('teachers.id', $teacherId)
                 ->select('quizzes.*')
                 ->orderBy('start_time', 'desc')
-                ->get()
-                ->map(function ($quiz) {
-                    // Thêm các trường tính toán
-                    $quiz->end_time = $quiz->end_time;
-                    $quiz->is_active = $quiz->is_active;
-                    $quiz->is_ended = $quiz->is_ended;
-                    $quiz->is_upcoming = $quiz->is_upcoming;
-                    $quiz->status = $quiz->status;
-                    $quiz->status_text = $quiz->status_text;
-                    
-                    return $quiz;
-                });
+                ->get();
+
 
             return response()->json([
                 'success' => true,
@@ -278,7 +264,81 @@ class QizzesController extends Controller // Sửa tên class
             ], 500);
         }
     }
+    public function getQuizResults($quizId)
+    {
+        try {
+            $teacherId = Teacher::where('user_id', Auth::id())->value('id');
 
+            // Kiểm tra quyền truy cập và lấy thông tin lớp
+            $quiz = Quiz::with('class.classStudents.student.user') // Load class và students
+                ->join('classes', 'classes.id', '=', 'quizzes.class_id')
+                ->join('teachers', 'teachers.id', '=', 'classes.teacher_id')
+                ->where('quizzes.id', $quizId)
+                ->where('teachers.id', $teacherId)
+                ->select('quizzes.*')
+                ->first();
+
+            if (!$quiz) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy bài kiểm tra hoặc bạn không có quyền truy cập.',
+                ], 403);
+            }
+
+            // Lấy danh sách sinh viên trong lớp
+            $classId = $quiz->class_id;
+            $students = ClassStudent::where('class_id', $classId)
+                ->with(['student.user', 'student.quizResults' => function ($query) use ($quizId) {
+                    $query->where('quiz_id', $quizId);
+                }])
+                ->get();
+
+            // Format dữ liệu trả về
+            $formattedResults = $students->map(function ($classStudent) use ($quizId) {
+                $student = $classStudent->student;
+                $quizResult = $student->quizResults->first(); // Lấy kết quả nếu có
+
+                return [
+                    'student_id' => $student->id,
+                    'student_name' => $student->name ?? $student->user->full_name ?? 'N/A',
+                    'student_code' => $student->mssv ?? 'N/A',
+                    'has_attempted' => !is_null($quizResult), // Đã làm bài hay chưa
+                    'quiz_result' => $quizResult ? [
+                        'id' => $quizResult->id,
+                        'score' => (float) $quizResult->score,
+                        'completed_at' => $quizResult->completed_at?->format('Y-m-d H:i:s'),
+                        'created_at' => $quizResult->created_at?->format('Y-m-d H:i:s'),
+                    ] : null,
+                    'status' => $quizResult ? 'completed' : 'not_attempted'
+                ];
+            });
+
+            // Sắp xếp: sinh viên đã làm bài lên trước
+            $sortedResults = $formattedResults->sortByDesc('has_attempted')->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $sortedResults,
+                'total_students' => $students->count(),
+                'total_completed' => $sortedResults->where('has_attempted', true)->count(),
+                'total_not_attempted' => $sortedResults->where('has_attempted', false)->count(),
+                'quiz_info' => [
+                    'id' => $quiz->id,
+                    'title' => $quiz->title,
+                    'class_id' => $classId,
+                    'class_name' => $quiz->class->name ?? 'N/A',
+                ],
+                'message' => 'Lấy kết quả bài kiểm tra thành công'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'statusCode' => 500,
+                'message' => 'Lỗi khi lấy kết quả bài kiểm tra',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * Lấy thống kê bài kiểm tra
      */
@@ -286,7 +346,9 @@ class QizzesController extends Controller // Sửa tên class
     {
         try {
             $teacherId = Teacher::where('user_id', Auth::id())->value('id');
-            $quiz = Quiz::withCount(['quizResults', 'questions'])
+
+            // Lấy bài kiểm tra với các mối quan hệ cần thiết
+            $quiz = Quiz::with(['class', 'questions'])
                 ->join('classes', 'classes.id', '=', 'quizzes.class_id')
                 ->join('teachers', 'teachers.id', '=', 'classes.teacher_id')
                 ->where('quizzes.id', $id)
@@ -301,32 +363,53 @@ class QizzesController extends Controller // Sửa tên class
                 ], 404);
             }
 
-            // Thêm các thông tin tính toán
-            $quiz->end_time = $quiz->end_time;
-            $quiz->is_active = $quiz->is_active;
-            $quiz->is_ended = $quiz->is_ended;
-            $quiz->is_upcoming = $quiz->is_upcoming;
+            $totalQuestions = $quiz->questions->count();
+            $totalStudentsCompleted = QuizResult::where('quiz_id', $id)->count();
+            $now = now();
+            $startTime = \Carbon\Carbon::parse($quiz->start_time);
 
-            // Thống kê kết quả
+            $status = 'unknown';
+            $statusText = 'Không xác định';
+
+            if ($now < $startTime) {
+                $status = 'upcoming';
+                $statusText = 'Sắp diễn ra';
+            } elseif ($quiz->time_limit && $quiz->start_time) {
+                $endTime = $startTime->copy()->addMinutes($quiz->time_limit);
+
+                if ($now <= $endTime) {
+                    $status = 'active';
+                    $statusText = 'Đang diễn ra';
+                } else {
+                    $status = 'ended';
+                    $statusText = 'Đã kết thúc';
+                }
+            }
+
             $resultsStats = [
-                'total_students_completed' => $quiz->quiz_results_count,
-                'total_questions' => $quiz->questions_count,
-                'quiz_status' => $quiz->status,
-                'quiz_status_text' => $quiz->status_text,
+                'total_students_completed' => $totalStudentsCompleted,
+                'total_questions' => $totalQuestions,
+                'quiz_status' => $status,
+                'quiz_status_text' => $statusText,
                 'time_info' => [
-                    'start_time' => $quiz->start_time->format('Y-m-d H:i:s'),
-                    'end_time' => $quiz->end_time ? $quiz->end_time->format('Y-m-d H:i:s') : null,
+                    'start_time' => $quiz->start_time ? $quiz->start_time->format('Y-m-d H:i:s') : null,
                     'time_limit' => $quiz->time_limit,
-                    'remaining_time' => $quiz->is_active && $quiz->end_time 
-                        ? now()->diffInMinutes($quiz->end_time, false) 
-                        : null
                 ]
             ];
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'quiz' => $quiz,
+                    'quiz' => [
+                        'id' => $quiz->id,
+                        'title' => $quiz->title,
+                        'class_id' => $quiz->class_id,
+                        'class_name' => $quiz->class->name ?? 'N/A',
+                        'time_limit' => $quiz->time_limit,
+                        'start_time' => $quiz->start_time,
+                        'created_at' => $quiz->created_at,
+                        'updated_at' => $quiz->updated_at
+                    ],
                     'statistics' => $resultsStats
                 ],
                 'message' => 'Lấy thống kê bài kiểm tra thành công'

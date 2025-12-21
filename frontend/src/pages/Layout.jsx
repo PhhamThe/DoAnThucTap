@@ -170,9 +170,9 @@ const Layout = () => {
     },
     {
       id: 'grades',
-      label: 'Bảng điểm',
+      label: 'Điểm số',
       icon: <AuditOutlined className="text-sm" />,
-      path: `admin/class/${classId}/grades`
+      path: `admin/grades/${classId}`
     },
   ];
 
@@ -205,7 +205,7 @@ const Layout = () => {
       id: 'grades',
       label: 'Điểm số',
       icon: <AuditOutlined className="text-sm" />,
-      path: `/class/${classId}/grades`
+      path: `/grades/${classId}`
     },
   ];
 
@@ -378,6 +378,18 @@ const Layout = () => {
         <AppstoreOutlined className="text-base flex-shrink-0" />
         <span className="break-words">Quản lý lớp học</span>
       </Link>
+
+      <Link to="/admin/grade_component_list" className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-md ${isActive('/admin/grade_component_list')}`}>
+        <AppstoreOutlined className="text-base flex-shrink-0" />
+        <span className="break-words">Quản lý loại điểm</span>
+      </Link>
+
+      <Link to="/admin/grade_rule_list" className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-md ${isActive('/admin/grade_rule_list')}`}>
+        <AppstoreOutlined className="text-base flex-shrink-0" />
+        <span className="break-words">Quy tắc tính điểm</span>
+      </Link>
+
+     
 
       <Link to="/admin/statistics" className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-md ${isActive('/admin/statistics')}`}>
         <PieChartOutlined className="text-base flex-shrink-0" />

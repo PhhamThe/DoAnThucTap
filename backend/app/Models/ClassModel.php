@@ -32,7 +32,7 @@ class ClassModel extends Model
      */
     public function teacher()
     {
-        return $this->belongsTo(User::class, 'teacher_id');
+        return $this->belongsTo(Teacher::class, 'teacher_id'); // Sửa thành Teacher::class
     }
 
     /**
@@ -49,5 +49,42 @@ class ClassModel extends Model
     public function assignments()
     {
         return $this->hasMany(Assignment::class, 'class_id');
+    }
+
+    /**
+     * Lớp học có nhiều sinh viên thông qua bảng class_students
+     */
+    public function classStudents()
+    {
+        return $this->hasMany(ClassStudent::class, 'class_id');
+    }
+
+    /**
+     * Lấy danh sách sinh viên trong lớp (many-to-many)
+     */
+    public function students()
+    {
+        return $this->belongsToMany(
+            Student::class,
+            'class_students', 
+            'class_id',     
+            'student_id'      
+        )->withTimestamps();
+    }
+
+    /**
+     * Lớp học có nhiều chương
+     */
+    public function chapters()
+    {
+        return $this->hasMany(Chapter::class, 'class_id');
+    }
+
+    /**
+     * Lớp học có nhiều bài kiểm tra
+     */
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class, 'class_id');
     }
 }

@@ -166,7 +166,7 @@ const Layout = () => {
       id: 'discussion',
       label: 'Thảo luận',
       icon: <CommentOutlined className="text-sm" />,
-      path: `admin/class/${classId}/discussion`
+      path: `chat/${classId}`
     },
     {
       id: 'grades',
@@ -199,7 +199,7 @@ const Layout = () => {
       id: 'discussion',
       label: 'Thảo luận',
       icon: <CommentOutlined className="text-sm" />,
-      path: `/class/${classId}/discussion`
+      path: `/chat/${classId}`
     },
     {
       id: 'grades',
@@ -209,10 +209,9 @@ const Layout = () => {
     },
   ];
 
-  // Chỉnh sửa: Thêm section header cho teacher và student menu giống admin
+ 
   const teacherMenu = (
     <>
-      {/* Thêm phần Quản lý giảng dạy giống admin */}
       <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
         Quản lý giảng dạy
       </div>
@@ -391,7 +390,7 @@ const Layout = () => {
 
      
 
-      <Link to="/admin/statistics" className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-md ${isActive('/admin/statistics')}`}>
+      <Link to="/admin/statistic" className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-md ${isActive('/admin/statistic')}`}>
         <PieChartOutlined className="text-base flex-shrink-0" />
         <span className="break-words">Thống kê</span>
       </Link>
@@ -429,7 +428,7 @@ const Layout = () => {
             {/* User profile at bottom */}
             <div className="mt-auto pt-4 border-t border-gray-700 flex-shrink-0">
               <div className="px-3 py-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 cursor-pointer" onClick={()=>navigate('/profile')}>
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <UserOutlined className="text-white text-sm" />
                   </div>

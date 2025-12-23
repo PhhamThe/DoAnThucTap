@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\Api\AssignmentController;
 use App\Http\Controllers\Api\ChaptersController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\ClassModelController;
 use App\Http\Controllers\Api\ClassStudentController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\FacultyController;
 use App\Http\Controllers\Api\GradeComponentController;
 use App\Http\Controllers\Api\GradeController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\Api\SemesterController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\SubmissionController;
 use App\Http\Controllers\Api\LearningProgressController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SubjectTimeLineController;
 use App\Http\Controllers\Api\QizzesController;
 use App\Http\Controllers\Api\QuestionController;
@@ -29,7 +32,9 @@ Route::post('login', [LoginController::class, 'login']);
 Route::middleware('auth:api')->group(function () {
 
     Route::get('/me', [LoginController::class, 'me']);
-
+    Route::put('/profile/update', [ProfileController::class, 'update']);
+    Route::get('/profile/avatar', [ProfileController::class, 'getAvatar']);
+    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar']);
     //Admin
     Route::resource('users', UserAccountController::class);
     Route::resource('faculties', FacultyController::class);
@@ -82,11 +87,22 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/quiz/{quizId}/status', [QuizStudentController::class, 'checkQuizStatus']);
         Route::get('/quiz/{quizId}', [QuizStudentController::class, 'getQuizForExam']);
         Route::post('/quiz/{quizId}/submit', [QuizStudentController::class, 'submitQuiz']);
-        Route::get('/quiz/result/{resultId}', [QuizStudentController::class, 'getResult']);
-        Route::get('/class/{classId}/quizzes', [QuizStudentController::class, 'getAvailableQuizzes']);
+        Route::get('/quiz/result/{quizId}', [QuizStudentController::class, 'getResult']);
     });
     // Learning Progress Routes
     Route::post('/progress/update', [LearningProgressController::class, 'updateLessonProgress']);
     Route::post('/progress/mark-complete', [LearningProgressController::class, 'markLessonComplete']);
     Route::get('/progress/get/{lessonId}', [LearningProgressController::class, 'getLessonProgress']);
+
+
+    Route::prefix('chat')->group(function () {
+        Route::get('/class/{classId}/messages', [ChatController::class, 'getMessages']);
+        Route::post('/class/{classId}/send', [ChatController::class, 'sendMessage']);
+        Route::put('/message/{messageId}', [ChatController::class, 'updateMessage']);
+        Route::delete('/message/{messageId}', [ChatController::class, 'deleteMessage']);
+        Route::get('/class/{classId}/check-new', [ChatController::class, 'checkNewMessages']);
+    });
+
+    //thống kê
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 });

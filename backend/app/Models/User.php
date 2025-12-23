@@ -40,6 +40,13 @@ class User extends Authenticatable implements JWTSubject
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+    public function student()
+    {
+        return $this->hasOne(Student::class, 'user_id');
+    }
 
-   
+    public function teacher()
+    {
+        return $this->hasOne(Teacher::class, 'user_id');
+    }
 }

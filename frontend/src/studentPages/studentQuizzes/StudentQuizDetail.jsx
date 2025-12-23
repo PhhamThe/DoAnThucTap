@@ -39,19 +39,16 @@ function StudentQuizDetail() {
 
             if (has_taken) {
                 setQuizStatus('already_taken');
-                toast.info('Bạn đã làm bài thi này rồi');
                 return;
             }
 
             if (quiz_status === 'not_started') {
                 setQuizStatus('not_started');
-                toast.warning('Đề thi chưa đến giờ mở');
                 return;
             }
 
             if (quiz_status === 'ended') {
                 setQuizStatus('ended');
-                toast.error('Đề thi đã kết thúc');
                 return;
             }
 
@@ -61,13 +58,11 @@ function StudentQuizDetail() {
 
             if (now > quizEndTime) {
                 setQuizStatus('ended');
-                toast.error('Đề thi đã kết thúc');
                 return;
             }
 
             if (now < quizStartTime) {
                 setQuizStatus('not_started');
-                toast.warning('Đề thi chưa đến giờ mở');
                 return;
             }
 
@@ -201,7 +196,7 @@ function StudentQuizDetail() {
 
                 if (response?.success) {
                     toast.success('Nộp bài thành công!');
-                    navigate(`/quiz-result/${response.data.result_id}`);
+                    navigate(`/quiz-result/${quizId}`);
                 } else {
                     toast.error(response?.message || 'Nộp bài thất bại');
                 }
@@ -238,19 +233,43 @@ function StudentQuizDetail() {
         );
     }
 
-    // Render các trạng thái lỗi
+
+
     if (quizStatus === 'already_taken') {
         return (
             <div className="min-h-screen bg-gray-50 grid place-items-center p-4">
-                <div className="bg-white rounded-xl shadow-sm max-w-md w-full p-8 text-center">
-                    <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 grid place-items-center">
-                        <span className="text-3xl text-green-600">✓</span>
+                <div className="bg-white rounded-lg shadow-sm max-w-md w-full p-8 text-center">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">Bạn đã làm bài thi này</h2>
+                
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={() => navigate('/quizzes')}
+                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            Quay lại danh sách
+                        </button>
+
+                        <button
+                            onClick={() => navigate(`/quiz-result/${quizId}`)}
+                            className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                            Xem kết quả
+                        </button>
                     </div>
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">Đã hoàn thành</h2>
-                    <p className="text-gray-600 mb-6">Bạn đã làm bài thi này</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (quizStatus === 'not_started') {
+        return (
+            <div className="min-h-screen bg-gray-50 grid place-items-center p-4">
+                <div className="bg-white rounded-lg shadow-sm max-w-md w-full p-8 text-center">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">Đề thi chưa đến giờ mở</h2>
+                    <p className="text-gray-600 mb-6">Vui lòng quay lại khi đến thời gian làm bài.</p>
                     <button
                         onClick={() => navigate('/quizzes')}
-                        className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 w-full"
                     >
                         Quay lại danh sách
                     </button>
@@ -259,27 +278,29 @@ function StudentQuizDetail() {
         );
     }
 
-    if (quizStatus === 'not_started' || quizStatus === 'ended' || quizStatus === 'error' || !quizData || questionsList.length === 0) {
+    if (quizStatus === 'ended') {
         return (
             <div className="min-h-screen bg-gray-50 grid place-items-center p-4">
-                <div className="bg-white rounded-xl shadow-sm max-w-md w-full p-8 text-center">
-                    <div className={`w-16 h-16 ${quizStatus === 'error' || questionsList.length === 0 ? 'bg-red-100' : quizStatus === 'not_started' ? 'bg-yellow-100' : 'bg-red-100'} rounded-full mx-auto mb-4 grid place-items-center`}>
-                        <span className="text-3xl">
-                            {quizStatus === 'error' || questionsList.length === 0 ? 'X' : quizStatus === 'not_started' ? '⏱️' : '✗'}
-                        </span>
-                    </div>
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                        {questionsList.length === 0 ? 'Đề thi chưa có câu hỏi' :
-                            quizStatus === 'error' ? 'Lỗi tải đề thi' :
-                                quizStatus === 'not_started' ? 'Đề thi chưa mở' :
-                                    'Đề thi đã kết thúc'}
-                    </h2>
-                    <p className="text-gray-600 mb-6">
-                        {questionsList.length === 0 ? 'Đề thi này chưa có câu hỏi. Vui lòng quay lại sau.' :
-                            quizStatus === 'error' ? 'Vui lòng thử lại sau' :
-                                quizStatus === 'not_started' ? 'Đề thi chưa đến giờ mở' :
-                                    'Thời gian làm bài đã hết'}
-                    </p>
+                <div className="bg-white rounded-lg shadow-sm max-w-md w-full p-8 text-center">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">Đề thi đã kết thúc</h2>
+                    <p className="text-gray-600 mb-6">Thời gian làm bài đã hết.</p>
+                    <button
+                        onClick={() => navigate('/quizzes')}
+                        className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 w-full"
+                    >
+                        Quay lại danh sách
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (quizStatus === 'error' || !quizData) {
+        return (
+            <div className="min-h-screen bg-gray-50 grid place-items-center p-4">
+                <div className="bg-white rounded-lg shadow-sm max-w-md w-full p-8 text-center">
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4">Không thể tải đề thi</h2>
+                    <p className="text-gray-600 mb-6">Đã có lỗi xảy ra. Vui lòng thử lại sau.</p>
                     <button
                         onClick={() => navigate('/quizzes')}
                         className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 w-full"
@@ -388,7 +409,7 @@ function StudentQuizDetail() {
                             <button
                                 onClick={submitQuiz}
                                 disabled={isSubmitting}
-                                className="px-5 py-2.5 text-white rounded-lg bg-blue-600 disabled:opacity-70 font-medium shadow-sm"
+                                className="px-5 py-2.5 text-white rounded-lg bg-blue-600 disabled:opacity-70 font-medium"
                             >
                                 {isSubmitting ? (
                                     <div className="flex items-center gap-2">
@@ -408,12 +429,7 @@ function StudentQuizDetail() {
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
                         <div className="bg-white shadow-sm p-5 sticky top-24">
-                            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                                </svg>
-                                Danh sách câu hỏi
-                            </h3>
+                            <h3 className="font-semibold text-gray-800 mb-4">Danh sách câu hỏi</h3>
 
                             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 mb-6">
                                 {questionsList.map((question, index) => {
@@ -422,9 +438,9 @@ function StudentQuizDetail() {
                                         <button
                                             key={question.id}
                                             onClick={() => setCurrentQuestionIndex(index)}
-                                            className={`h-10 w-10 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${isCurrentQuestion
+                                            className={`h-10 w-10 rounded-lg flex items-center justify-center text-sm font-medium ${isCurrentQuestion
                                                 ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {index + 1}
@@ -438,9 +454,9 @@ function StudentQuizDetail() {
                                     <span className="text-sm text-gray-600">Tiến độ làm bài</span>
                                     <span className="font-medium">{answeredQuestionsCount}/{questionsList.length}</span>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                <div className="w-full bg-gray-200 rounded-full h-2">
                                     <div
-                                        className="bg-gradient-to-r from-green-400 to-green-500 h-2.5 rounded-full transition-all duration-300"
+                                        className="bg-green-500 h-2 rounded-full"
                                         style={{ width: `${(answeredQuestionsCount / questionsList.length) * 100}%` }}
                                     ></div>
                                 </div>
@@ -469,7 +485,7 @@ function StudentQuizDetail() {
                     <div className="lg:col-span-3">
                         <div className="bg-white shadow-sm p-6 mb-6">
                             <div className="flex flex-wrap items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                                <span className="px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 font-medium text-sm rounded-lg">
+                                <span className="px-3 py-1.5 bg-blue-100 text-blue-700 font-medium text-sm rounded-lg">
                                     Câu {currentQuestionIndex + 1}
                                 </span>
                                 <span className="text-sm text-gray-600">
@@ -493,13 +509,13 @@ function StudentQuizDetail() {
                                         <div
                                             key={answer.id}
                                             onClick={() => handleAnswerSelect(currentQuestion.id, answer.id, currentQuestion.question_type)}
-                                            className={`p-4 border cursor-pointer transition-all duration-200 ${isSelected
-                                                ? 'border-blue-400 bg-gradient-to-r from-blue-50 to-blue-25 shadow-sm'
+                                            className={`p-4 border cursor-pointer ${isSelected
+                                                ? 'border-blue-400 bg-blue-50'
                                                 : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
+                                                <div className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center ${isSelected
                                                     ? 'border-blue-600 bg-blue-600'
                                                     : 'border-gray-400'
                                                     }`}>
@@ -518,27 +534,21 @@ function StudentQuizDetail() {
                         </div>
 
                         {/* Nút điều hướng */}
-                        <div className="flex gap-2 items-left">
+                        <div className="flex gap-2">
                             <button
                                 onClick={goToPreviousQuestion}
                                 disabled={currentQuestionIndex === 0}
-                                className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2 transition-colors"
+                                className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                             >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
                                 Câu trước
                             </button>
 
                             <button
                                 onClick={goToNextQuestion}
                                 disabled={currentQuestionIndex === questionsList.length - 1}
-                                className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center gap-2 transition-colors"
+                                className="px-5 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                             >
                                 Câu sau
-                                <svg className="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
                             </button>
                         </div>
                     </div>

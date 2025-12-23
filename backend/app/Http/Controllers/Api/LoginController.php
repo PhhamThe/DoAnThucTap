@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ClassStudent;
+use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
@@ -55,15 +58,78 @@ class LoginController extends Controller
         try {
             $user = JWTAuth::parseToken()->authenticate();
             if (!$user) return response()->json(['success' => false, 'message' => 'User not found'], 404);
-            return response()->json(['success' => true, 'user' => [
+
+            $responseData = [
                 'id' => $user->id,
                 'username' => $user->username,
                 'full_name' => $user->full_name,
-                'role' => $user->role
-            ]]);
+                'role' => $user->role,
+                'email' => $user->email,
+                'avatar' => $user->avatar,
+            ];
+
+            if ($user->role === 'student') {
+                $student = Student::where('students.user_id', $user->id)
+                    ->first();
+
+                if ($student) {
+                    $responseData['detail_info'] = [
+                        'mssv' => $student->mssv,
+                        'address' => $student->address,
+                        'phone' => $student->phone,
+                        'birth_date' => $student->birth_date,
+                        'gender' => $student->gender,
+                        'description' => $student->description,
+                    ];
+
+                    $majorFacultyInfo = ClassStudent::join('classes', 'class_students.class_id', '=', 'classes.id')
+                        ->join('subjects', 'classes.subject_id', '=', 'subjects.id')
+                        ->join('major_subject', 'subjects.id', '=', 'major_subject.subject_id')
+                        ->join('majors', 'major_subject.major_id', '=', 'majors.id')
+                        ->join('faculties', 'majors.faculty_id', '=', 'faculties.id')
+                        ->where('class_students.student_id', $student->id)
+                        ->select(
+                            'majors.id as major_id',
+                            'majors.name as major_name',
+                            'majors.description as major_description',
+                            'faculties.id as faculty_id',
+                            'faculties.name as faculty_name',
+                            'faculties.description as faculty_description'
+                        )
+                        ->first();
+
+                    if ($majorFacultyInfo) {
+                        $responseData['detail_info']['major'] = [
+                            'id' => $majorFacultyInfo->major_id,
+                            'name' => $majorFacultyInfo->major_name,
+                            'description' => $majorFacultyInfo->major_description
+                        ];
+
+                        $responseData['detail_info']['faculty'] = [
+                            'id' => $majorFacultyInfo->faculty_id,
+                            'name' => $majorFacultyInfo->faculty_name,
+                            'description' => $majorFacultyInfo->faculty_description
+                        ];
+                    }
+                }
+            } elseif ($user->role === 'teacher') {
+                $teacher = Teacher::where('teachers.user_id', $user->id)
+                    ->first();
+
+                if ($teacher) {
+                    $responseData['detail_info'] = [
+                        'address' => $teacher->address,
+                        'phone' => $teacher->phone,
+                        'birth_date' => $teacher->birth_date,
+                        'gender' => $teacher->gender,
+                        'description' => $teacher->description,
+                    ];
+                }
+            }
+
+            return response()->json(['success' => true, 'user' => $responseData]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
-    
 }

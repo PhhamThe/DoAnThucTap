@@ -37,6 +37,9 @@ import GradeRule from './pages/gradeRule/GradeRule';
 import Grade from './pages/grade/Grade';
 import QuizManagement from './pages/quizzes/QuizManagment';
 import QuizResult from './pages/quizzes/QuizResult';
+import ChatPage from './pages/chat/ChatPage';
+import Statistic from './pages/statistic/Statistic';
+import Profile from './pages/profile/Profile';
 
 function App() {
   return (
@@ -60,6 +63,7 @@ function App() {
           <Route path="/admin/class_list" element={<Class />} />
           <Route path="/admin/grade_component_list" element={<GradeComponent />} />
           <Route path="/admin/grade_rule_list" element={<GradeRule />} />
+          <Route path='/admin/statistic' element={<Statistic />} />
           <Route path="/admin/class_list_by_teacher" element={<ClassList />} />
           <Route path="/admin/class_detail/:classId" element={<ClassDetail />} />
           <Route path="/admin/assignment-list/:classId" element={<Assignment />} />
@@ -72,6 +76,9 @@ function App() {
           <Route path='/admin/quiz-managment/:quizId' element={<QuizManagement />} />
           <Route path='/admin/quiz_results/:quizId' element={<QuizResult />} />
           <Route path='/admin/create-quiz/:quizId' element={<CreateQuiz />} />
+
+          <Route path='/chat/:classId' element={<ChatPage />} />
+          <Route path='/profile' element={<Profile />} />
           {/* Student Routes - GIỮ NGUYÊN */}
           <Route path='/assignment-list/:classId' element={<AssignmentList />} />
           <Route path='/assignment-details/:assignmentId' element={<AssignmentDetails />} />
@@ -80,7 +87,7 @@ function App() {
           <Route path='/lesson/:lessonId' element={<LessonDetail />} />
           <Route path='/quizzes/:classId' element={<StudentQuizzes />} />
           <Route path='/quiz-detail/:quizId' element={<StudentQuizDetail />} />
-          <Route path="/quiz-result/:resultId" element={<QuizResultPage />} />
+          <Route path="/quiz-result/:quizId" element={<QuizResultPage />} />
         </Route>
       </Routes>
     </Router>

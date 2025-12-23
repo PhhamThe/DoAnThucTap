@@ -9,7 +9,6 @@ const LoginPage = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
-
     if (token && role) {
       switch (role) {
         case 'admin':

@@ -6,6 +6,7 @@ import Pagination from "../../components/Pagination";
 import { apiGet } from "../../api/client";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 function QuizResult() {
     const [studentResults, setStudentResults] = useState([]);
@@ -104,11 +105,9 @@ function QuizResult() {
                 return;
             }
 
-            // Cấu trúc response từ API
             setStudentResults(json?.data || []);
             setQuizInfo(json?.quiz_info || {});
 
-            // Tính toán tổng số trang dựa trên tổng số sinh viên
             const totalStudents = json?.total_students || 0;
             setTotalPages(Math.ceil(totalStudents / itemsPerPage));
 
@@ -128,42 +127,90 @@ function QuizResult() {
 
     const handlePageChange = (page) => setCurrentPage(page);
 
+    // Hàm xuất Excel
+    const exportToExcel = () => {
+        if (studentResults.length === 0) {
+            toast.warning("Không có dữ liệu để xuất");
+            return;
+        }
+
+        try {
+            const dataForExcel = studentResults.map((student, index) => ({
+                "STT": index + 1,
+                "Mã SV": student.student_code || "-",
+                "Họ tên": student.student_name || "-",
+                "Trạng thái": student.has_attempted ? "Đã làm bài" : "Chưa làm bài",
+                "Điểm": student.has_attempted && student.quiz_result ? `${student.quiz_result.score}` : "-",
+                "Thời gian nộp": student.has_attempted && student.quiz_result?.completed_at 
+                    ? new Date(student.quiz_result.completed_at).toLocaleString('vi-VN')
+                    : "-"
+            }));
+
+            // Tạo worksheet
+            const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+            
+            // Tạo workbook
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Kết quả bài thi");
+            
+            // Tên file với thời gian
+            const fileName = `ket-qua-bai-thi-${quizInfo?.title || quizId}-${new Date().toISOString().split('T')[0]}.xlsx`;
+            
+            // Xuất file
+            XLSX.writeFile(workbook, fileName);
+            
+            toast.success("Xuất file Excel thành công!");
+        } catch (error) {
+            console.error("Lỗi khi xuất Excel:", error);
+            toast.error("Có lỗi khi xuất file Excel");
+        }
+    };
+
     return (
         <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">Kết quả bài thi</h1>
-                {quizInfo && (
-                    <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                        <div className="flex flex-wrap gap-4">
-                            <div>
-                                <span className="text-sm text-gray-600">Đề thi:</span>
-                                <p className="font-semibold">{quizInfo.title}</p>
-                            </div>
-                            <div>
-                                <span className="text-sm text-gray-600">Lớp:</span>
-                                <p className="font-semibold">{quizInfo.class_name}</p>
-                            </div>
-                            <div>
-                                <span className="text-sm text-gray-600">Tổng sinh viên:</span>
-                                <p className="font-semibold">{quizInfo.total_students || studentResults.length}</p>
-                            </div>
-                            <div>
-                                <span className="text-sm text-gray-600">Đã làm bài:</span>
-                                <p className="font-semibold text-green-600">
-                                    {quizInfo.total_completed || studentResults.filter(s => s.has_attempted).length}
-                                </p>
-                            </div>
-                            <div>
-                                <span className="text-sm text-gray-600">Chưa làm:</span>
-                                <p className="font-semibold text-yellow-600">
-                                    {quizInfo.total_not_attempted || studentResults.filter(s => !s.has_attempted).length}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">Kết quả bài thi</h1>
+                <button
+                    onClick={exportToExcel}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Xuất Excel
+                </button>
             </div>
 
+            {quizInfo && (
+                <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                    <div className="flex flex-wrap gap-4">
+                        <div>
+                            <span className="text-sm text-gray-600">Đề thi:</span>
+                            <p className="font-semibold">{quizInfo.title}</p>
+                        </div>
+                        <div>
+                            <span className="text-sm text-gray-600">Lớp:</span>
+                            <p className="font-semibold">{quizInfo.class_name}</p>
+                        </div>
+                        <div>
+                            <span className="text-sm text-gray-600">Tổng sinh viên:</span>
+                            <p className="font-semibold">{quizInfo.total_students || studentResults.length}</p>
+                        </div>
+                        <div>
+                            <span className="text-sm text-gray-600">Đã làm bài:</span>
+                            <p className="font-semibold text-green-600">
+                                {quizInfo.total_completed || studentResults.filter(s => s.has_attempted).length}
+                            </p>
+                        </div>
+                        <div>
+                            <span className="text-sm text-gray-600">Chưa làm:</span>
+                            <p className="font-semibold text-yellow-600">
+                                {quizInfo.total_not_attempted || studentResults.filter(s => !s.has_attempted).length}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <DataTable
                 columns={columns}
@@ -171,7 +218,6 @@ function QuizResult() {
                 loading={loading}
                 emptyMessage="Chưa có sinh viên nào trong lớp này"
                 rowIndexBase={(currentPage - 1) * itemsPerPage}
-                // Không cần các action như thêm/sửa/xóa vì đây là kết quả
                 hideActions={true}
             />
 
@@ -184,9 +230,6 @@ function QuizResult() {
                     />
                 </div>
             )}
-
-
-           
 
             <ToastContainer
                 position="bottom-right"

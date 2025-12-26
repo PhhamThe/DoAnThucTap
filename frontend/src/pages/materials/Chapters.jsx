@@ -283,12 +283,7 @@ function Chapters() {
                                                                 <span>Ngày tạo: {new Date(chapter.created_at).toLocaleDateString('vi-VN')}</span>
                                                             </div>
                                                         </div>
-                                                        {/* <button
-                                                            onClick={() => navigate(`/admin/chapter_details/${chapter.id}`)}
-                                                            className="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded ml-4"
-                                                        >
-                                                            Xem chi tiết
-                                                        </button> */}
+                                                       
                                                     </li>
                                                 ))}
                                             </ul>

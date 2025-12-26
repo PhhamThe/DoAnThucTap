@@ -26,7 +26,6 @@ class ProfileController extends Controller
                 ], 404);
             }
 
-            // Lấy role của user
             $userRole = DB::table('users')
                 ->where('id', $userId)
                 ->value('role');
@@ -57,11 +56,8 @@ class ProfileController extends Controller
                 ], 422);
             }
 
-            // Bắt đầu transaction
             DB::beginTransaction();
-
             try {
-                // Cập nhật thông tin user cơ bản
                 $userData = [];
                 if ($request->has('full_name') && $request->full_name) {
                     $userData['full_name'] = $request->full_name;
@@ -76,12 +72,9 @@ class ProfileController extends Controller
                         ->update($userData);
                 }
 
-                // Xử lý upload avatar nếu có
                 if ($request->hasFile('avatar')) {
                     $this->handleAvatarUpload($userId, $request->file('avatar'));
                 }
-
-                // Cập nhật thông tin chi tiết dựa trên role
                 $detailData = [];
                 $detailFields = ['phone', 'birth_date', 'gender', 'address', 'description'];
                 
@@ -133,13 +126,9 @@ class ProfileController extends Controller
      */
     private function handleAvatarUpload($userId, $file)
     {
-        // Tạo tên file
+
         $fileName = 'avatar_' . $userId . '_' . time() . '.' . $file->getClientOriginalExtension();
-        
-        // Lưu file vào storage
         $filePath = $file->storeAs('avatars', $fileName, 'public');
-        
-        // Tạo mảng metadata giống với submission
         $avatarData = [
             'path' => $filePath,
             'name' => $file->getClientOriginalName(),
@@ -147,7 +136,6 @@ class ProfileController extends Controller
             'mime_type' => $file->getMimeType(),
         ];
 
-        // Lưu vào users table
         DB::table('users')
             ->where('id', $userId)
             ->update(['avatar' => json_encode($avatarData)]);
@@ -158,7 +146,6 @@ class ProfileController extends Controller
      */
     private function updatePassword($userId, $request)
     {
-        // Kiểm tra mật khẩu hiện tại
         $currentUser = DB::table('users')
             ->where('id', $userId)
             ->first();
@@ -166,60 +153,11 @@ class ProfileController extends Controller
         if (!Hash::check($request->current_password, $currentUser->password)) {
             throw new \Exception('Mật khẩu hiện tại không đúng');
         }
-
-        // Cập nhật mật khẩu mới
         DB::table('users')
             ->where('id', $userId)
             ->update([
                 'password' => Hash::make($request->new_password)
             ]);
-    }
-
-    /**
-     * Xóa avatar
-     */
-    public function deleteAvatar()
-    {
-        try {
-            $userId = Auth::id();
-            
-            if (!$userId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Người dùng không tồn tại'
-                ], 404);
-            }
-
-            // Lấy thông tin avatar hiện tại
-            $user = DB::table('users')
-                ->where('id', $userId)
-                ->first();
-                
-            if ($user->avatar) {
-                $avatarData = json_decode($user->avatar, true);
-                
-                // Xóa file từ storage
-                if (isset($avatarData['path']) && Storage::disk('public')->exists($avatarData['path'])) {
-                    Storage::disk('public')->delete($avatarData['path']);
-                }
-                
-                // Xóa thông tin avatar trong database
-                DB::table('users')
-                    ->where('id', $userId)
-                    ->update(['avatar' => null]);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Xóa ảnh đại diện thành công'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
-            ], 500);
-        }
     }
 
     /**

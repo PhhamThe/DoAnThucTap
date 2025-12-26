@@ -40,6 +40,8 @@ import QuizResult from './pages/quizzes/QuizResult';
 import ChatPage from './pages/chat/ChatPage';
 import Statistic from './pages/statistic/Statistic';
 import Profile from './pages/profile/Profile';
+import StudentGrades from './pages/grade/StudentGrades';
+import UserInfo from './pages/users/UserInfo';
 
 function App() {
   return (
@@ -56,6 +58,7 @@ function App() {
           <Route path="/student_dashboard" element={<StudentDashboard />} />
           <Route path="/admin/grades/:classId" element={<Grade />} />
           <Route path="/admin/user_list" element={<User />} />
+          <Route path="/admin/user_info/:userId" element={<UserInfo />} />
           <Route path="/admin/faculty_list" element={<Faculty />} />
           <Route path="/admin/major_list" element={<Major />} />
           <Route path="/admin/semester_list" element={<Semester />} />
@@ -76,10 +79,9 @@ function App() {
           <Route path='/admin/quiz-managment/:quizId' element={<QuizManagement />} />
           <Route path='/admin/quiz_results/:quizId' element={<QuizResult />} />
           <Route path='/admin/create-quiz/:quizId' element={<CreateQuiz />} />
-
           <Route path='/chat/:classId' element={<ChatPage />} />
           <Route path='/profile' element={<Profile />} />
-          {/* Student Routes - GIỮ NGUYÊN */}
+          {/* Student Routes */}
           <Route path='/assignment-list/:classId' element={<AssignmentList />} />
           <Route path='/assignment-details/:assignmentId' element={<AssignmentDetails />} />
           <Route path='/chapters/:classId' element={<Chapters />} />
@@ -88,6 +90,7 @@ function App() {
           <Route path='/quizzes/:classId' element={<StudentQuizzes />} />
           <Route path='/quiz-detail/:quizId' element={<StudentQuizDetail />} />
           <Route path="/quiz-result/:quizId" element={<QuizResultPage />} />
+          <Route path='/grades/:classId' element={<StudentGrades />} />
         </Route>
       </Routes>
     </Router>

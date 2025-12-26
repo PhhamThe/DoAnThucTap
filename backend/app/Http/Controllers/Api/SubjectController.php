@@ -12,7 +12,7 @@ class SubjectController extends Controller
 
     public function index()
     {
-        $subjects = Subject::with('majors')->paginate(5);
+        $subjects = Subject::with('majors')->paginate(10);
 
         return response()->json([
             'success' => true,

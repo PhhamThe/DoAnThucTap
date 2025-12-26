@@ -11,7 +11,7 @@ class MajorController extends Controller
 {
     public function index(Request $request)
     {
-        $majors = Major::with('faculty')->paginate(5);
+        $majors = Major::with('faculty')->paginate(10);
 
         return response()->json([
             'success' => true,

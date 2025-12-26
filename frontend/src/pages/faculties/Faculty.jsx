@@ -35,7 +35,7 @@ function Faculty() {
     const formFields = useMemo(
         () => [
             { name: 'name', label: 'Tên khoa viện', required: true },
-            { name: 'description', label: 'Mô tả', required: true },
+            { name: 'description', label: 'Mô tả', required: true, type: 'textarea' },
         ],
         []
     );

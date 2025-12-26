@@ -86,10 +86,18 @@ export default function CrudForm({
     }
 
     function renderField(field) {
+
+        if (typeof field.showWhen === "function") {
+            if (!field.showWhen(formValues)) {
+                return null;
+            }
+        }
+
         const { name, label, type = "text", required = false, options = [], spanFull = false } = field;
         const value = formValues[name] ?? "";
 
         const fieldClasses = spanFull ? "md:col-span-2" : "";
+
 
         // Multiselect field
         if (type === "multiselect") {

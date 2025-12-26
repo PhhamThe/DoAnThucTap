@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import DataTable from '../../components/DataTable';
 import Pagination from '../../components/Pagination';
 import CrudForm from '../../components/CrudForm';
+import ImportExcel from '../../components/excel/ImportExcel';
 import { apiDelete, apiGet, apiPost, apiPut } from '../../api/client';
 import { useParams } from 'react-router-dom';
 
@@ -13,14 +14,14 @@ function ClassStudent() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 5;
-    const [faculties, setFaculties] = useState([]);
     const [isAddOpen, setAddOpen] = useState(false);
     const [isEditOpen, setEditOpen] = useState(false);
     const [editingRow, setEditingRow] = useState(null);
+    const [isImportOpen, setImportOpen] = useState(false);
     let { classId } = useParams();
 
-   
-    const columns = useMemo( // Đây là các cột bảng hiển thị danh sách
+
+    const columns = useMemo(
         () => [
             {
                 key: 'student_name',
@@ -43,12 +44,28 @@ function ClassStudent() {
         []
     );
 
-    const formFields = useMemo( // Đây là form sửa hoặc thêm
+    const formFields = useMemo(
         () => [
             { name: 'mssv', label: 'Mã số sinh viên', required: true },
         ],
         []
     );
+    //các trường mình sẽ có trong template
+    const excelTemplateFields = useMemo(() => [
+        { name: 'mssv', label: 'Mã sinh viên', required: true },
+
+    ], []);
+    //ví dụ mẫu cho template
+    const sampleData = [
+        {
+            mssv: 'SV0012025',
+
+        },
+        {
+            mssv: 'SV0022025',
+
+        }
+    ];
 
     useEffect(() => {
         void fetchStudentByClasses();
@@ -101,33 +118,8 @@ function ClassStudent() {
             console.error(err);
         }
     }
-
-    //Gọi api update sinh viên
-    async function handleUpdate(data) {
-        if (!editingRow?.id) return toast.error('Không có sinh viên đang sửa');
-        try {
-            const payload = { name: data.name, faculty_id: data.faculty_id, description: data.description };
-            const json = await apiPut(`api/majors/${editingRow.id}`, payload);
-            if (json?.success === false) {
-                toast.error(json?.message || 'Cập nhật thất bại');
-                if (json?.errors) Object.values(json.errors).forEach((errs) => toast.warn(errs[0]));
-                return;
-            }
-            toast.success(json?.message || 'Cập nhật sinh viên thành công');
-            const updated = json?.data;
-            if (updated?.id) {
-                setStudentList((prev) => prev.map((row) => (row.id === updated.id ? updated : row)));
-            } else {
-                await fetchStudentByClasses();
-            }
-            setEditOpen(false);
-            setEditingRow(null);
-        } catch (err) {
-            toast.error('Lỗi khi cập nhật sinh viên');
-            console.error(err);
-        }
-    }
-
+  
+    //delete sinh viên
     async function handleDelete(row) {
         const ok = window.confirm('Bạn có chắc muốn xóa sinh viên này?');
         if (!ok) return;
@@ -144,9 +136,46 @@ function ClassStudent() {
             console.error(err);
         }
     }
+
+    //import file excel
+    async function handleImportExcel(data) {
+        setLoading(true);
+
+        let success = 0, failed = 0;
+        const errors = [];
+
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i];
+
+            try {
+                const payload = {
+                    mssv: String(row.mssv || ''),
+                };
+                await apiPost(`api/class_student/${classId}`, payload);
+                success++;
+
+            } catch (error) {
+                failed++;
+                const errorMsg = error.response?.data?.message || error.message || 'Lỗi không xác định';
+                errors.push(`Dòng ${i + 1}: ${errorMsg}`);
+            }
+        }
+
+        // Hiển thị kết quả
+        if (failed > 0) {
+            toast.warning(`Import: ${success} thành công, ${failed} thất bại`);
+            errors.slice(0, 3).forEach(msg => toast.error(msg));
+        } else {
+            toast.success(`Import thành công ${success} sinh viên`);
+        }
+
+        await fetchStudentByClasses();
+        setImportOpen(false);
+        setLoading(false);
+    }
     return (
         <div className="p-6">
-           
+
 
             <DataTable
                 columns={columns}
@@ -155,13 +184,22 @@ function ClassStudent() {
                 emptyMessage="Chưa có sinh viên nào trong lớp"
                 rowIndexBase={(currentPage - 1) * itemsPerPage}
                 onDelete={handleDelete}
-                 headerActions={
-                    <button
-                        onClick={() => setAddOpen(true)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                        Thêm sinh viên
-                    </button>
+                headerActions={
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setImportOpen(true)}
+                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+
+                            Import Excel
+                        </button>
+                        <button
+                            onClick={() => setAddOpen(true)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                            Thêm sinh viên
+                        </button>
+                    </div>
                 }
             />
 
@@ -182,7 +220,6 @@ function ClassStudent() {
                     title="Sửa sinh viên"
                     fields={formFields}
                     initialValues={editingRow}
-                    onSubmit={handleUpdate}
                     onCancel={() => {
                         setEditOpen(false);
                         setEditingRow(null);
@@ -191,6 +228,15 @@ function ClassStudent() {
                 />
             )}
 
+            {isImportOpen && (
+                <ImportExcel
+                    onImport={handleImportExcel}
+                    onCancel={() => setImportOpen(false)}
+                    templateColumns={excelTemplateFields}
+                    sampleData={sampleData}
+                    maxRows={100}
+                />
+            )}
             <ToastContainer position="bottom-right" autoClose={5000} />
         </div>
     );

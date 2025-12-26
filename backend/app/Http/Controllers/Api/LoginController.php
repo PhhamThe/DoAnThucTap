@@ -69,7 +69,8 @@ class LoginController extends Controller
             ];
 
             if ($user->role === 'student') {
-                $student = Student::where('students.user_id', $user->id)
+                $student = Student::with(['major.faculty'])
+                    ->where('user_id', $user->id)
                     ->first();
 
                 if ($student) {
@@ -80,41 +81,27 @@ class LoginController extends Controller
                         'birth_date' => $student->birth_date,
                         'gender' => $student->gender,
                         'description' => $student->description,
+                        'major_id' => $student->major_id,
                     ];
 
-                    $majorFacultyInfo = ClassStudent::join('classes', 'class_students.class_id', '=', 'classes.id')
-                        ->join('subjects', 'classes.subject_id', '=', 'subjects.id')
-                        ->join('major_subject', 'subjects.id', '=', 'major_subject.subject_id')
-                        ->join('majors', 'major_subject.major_id', '=', 'majors.id')
-                        ->join('faculties', 'majors.faculty_id', '=', 'faculties.id')
-                        ->where('class_students.student_id', $student->id)
-                        ->select(
-                            'majors.id as major_id',
-                            'majors.name as major_name',
-                            'majors.description as major_description',
-                            'faculties.id as faculty_id',
-                            'faculties.name as faculty_name',
-                            'faculties.description as faculty_description'
-                        )
-                        ->first();
-
-                    if ($majorFacultyInfo) {
+                    if ($student->major) {
                         $responseData['detail_info']['major'] = [
-                            'id' => $majorFacultyInfo->major_id,
-                            'name' => $majorFacultyInfo->major_name,
-                            'description' => $majorFacultyInfo->major_description
+                            'id' => $student->major->id,
+                            'name' => $student->major->name,
+                            'description' => $student->major->description
                         ];
 
-                        $responseData['detail_info']['faculty'] = [
-                            'id' => $majorFacultyInfo->faculty_id,
-                            'name' => $majorFacultyInfo->faculty_name,
-                            'description' => $majorFacultyInfo->faculty_description
-                        ];
+                        if ($student->major->faculty) {
+                            $responseData['detail_info']['faculty'] = [
+                                'id' => $student->major->faculty->id,
+                                'name' => $student->major->faculty->name,
+                                'description' => $student->major->faculty->description
+                            ];
+                        }
                     }
                 }
             } elseif ($user->role === 'teacher') {
-                $teacher = Teacher::where('teachers.user_id', $user->id)
-                    ->first();
+                $teacher = Teacher::where('user_id', $user->id)->first();
 
                 if ($teacher) {
                     $responseData['detail_info'] = [

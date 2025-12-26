@@ -97,7 +97,7 @@ export default function DataTable({
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                                     #
                                 </th>
                                 {visibleColumns.map((column) => (
@@ -117,7 +117,7 @@ export default function DataTable({
                                     </th>
                                 ))}
                                 {hasActions && (
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                                         Thao tác
                                     </th>
                                 )}
@@ -158,19 +158,22 @@ export default function DataTable({
                                         key={row.id ?? index}
                                         className="hover:bg-gray-50 transition-colors duration-150"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-12">
                                             {rowIndexBase + index + 1}
                                         </td>
                                         {visibleColumns.map((column) => (
                                             <td
                                                 key={column.key}
-                                                className="px-6 py-4 whitespace-nowrap text-sm text-gray-600"
+                                                className="px-6 py-4 text-sm text-gray-600"
+                                                title={column.render ? String(column.render(row)) : String(row[column.key] || '')}
                                             >
-                                                {column.render ? column.render(row) : row[column.key]}
+                                                <div className="truncate max-w-xs">
+                                                    {column.render ? column.render(row) : row[column.key]}
+                                                </div>
                                             </td>
                                         ))}
                                         {hasActions && (
-                                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                                            <td className="px-6 py-4 whitespace-nowrap text-right w-40">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {onView && (
                                                         <button

@@ -16,7 +16,7 @@ class FacultyController extends Controller
     {
         $query = Faculty::query();
 
-        $users = $query->paginate(5);
+        $users = $query->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -32,7 +32,7 @@ class FacultyController extends Controller
         try {
             $validated = $request->validate([
                 'name'  => 'required|string|max:255|unique:faculties,name',
-                'description'  => 'string|max:500',
+                'description'  => 'string|max:1000',
 
             ]);
 

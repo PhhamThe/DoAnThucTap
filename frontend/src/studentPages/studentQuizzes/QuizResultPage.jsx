@@ -69,7 +69,7 @@ function QuizResultPage() {
                         <h1 className="text-2xl font-bold text-gray-900">Kết quả bài thi</h1>
                         <p className="text-gray-600 mt-1">{quiz.title}</p>
                     </div>
-                    
+
                     <div className="flex items-center justify-between mt-4">
                         <div className="text-sm text-gray-500">
                             Hoàn thành: {new Date(summary.completed_at).toLocaleDateString('vi-VN')}
@@ -92,7 +92,7 @@ function QuizResultPage() {
                         {/* Overall Score Card */}
                         <div className="bg-white rounded-lg border border-gray-200 p-6">
                             <h3 className="font-semibold text-gray-800 mb-4">Kết quả chung</h3>
-                            
+
                             <div className="text-center mb-6">
                                 <div className="relative inline-flex items-center justify-center">
                                     <div className="relative">
@@ -140,13 +140,8 @@ function QuizResultPage() {
                                         {summary.score}/{detailed_results.length}
                                     </span>
                                 </div>
-                                
-                                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                    <span className="text-gray-600">Trạng thái</span>
-                                    <span className={`font-medium ${isPassed ? 'text-green-600' : 'text-red-600'}`}>
-                                        {isPassed ? 'ĐẠT' : 'KHÔNG ĐẠT'}
-                                    </span>
-                                </div>
+
+                               
                                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                     <span className="text-gray-600">Số câu hỏi</span>
                                     <span className="font-medium">{summary.total_questions}</span>
@@ -185,16 +180,14 @@ function QuizResultPage() {
                                             <div className={`px-4 py-3 border-b ${item.is_correct ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center space-x-3">
-                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                                                            item.is_correct 
-                                                                ? 'bg-green-100 text-green-800' 
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${item.is_correct
+                                                                ? 'bg-green-100 text-green-800'
                                                                 : 'bg-red-100 text-red-800'
-                                                        }`}>
+                                                            }`}>
                                                             {index + 1}
                                                         </div>
-                                                        <span className={`font-medium ${
-                                                            item.is_correct ? 'text-green-700' : 'text-red-700'
-                                                        }`}>
+                                                        <span className={`font-medium ${item.is_correct ? 'text-green-700' : 'text-red-700'
+                                                            }`}>
                                                             {item.is_correct ? 'Đúng' : 'Sai'}
                                                         </span>
                                                     </div>
@@ -207,31 +200,29 @@ function QuizResultPage() {
                                             {/* Question Content */}
                                             <div className="p-4">
                                                 <p className="text-gray-800 font-medium mb-4">{item.question_text}</p>
-                                                
+
                                                 {/* Answers */}
                                                 <div className="space-y-2">
                                                     {item.answers.map(answer => (
                                                         <div
                                                             key={answer.id}
-                                                            className={`p-3 rounded border ${
-                                                                answer.is_correct && answer.is_selected
+                                                            className={`p-3 rounded border ${answer.is_correct && answer.is_selected
                                                                     ? 'bg-green-50 border-green-300'
                                                                     : answer.is_correct && !answer.is_selected
-                                                                    ? 'bg-green-50 border-green-200'
-                                                                    : !answer.is_correct && answer.is_selected
-                                                                    ? 'bg-red-50 border-red-200'
-                                                                    : 'bg-white border-gray-200'
-                                                            }`}
+                                                                        ? 'bg-green-50 border-green-200'
+                                                                        : !answer.is_correct && answer.is_selected
+                                                                            ? 'bg-red-50 border-red-200'
+                                                                            : 'bg-white border-gray-200'
+                                                                }`}
                                                         >
                                                             <div className="flex items-start">
                                                                 <div className="flex-shrink-0 mt-0.5">
-                                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                                                                        answer.is_correct
+                                                                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${answer.is_correct
                                                                             ? 'border-green-500 bg-green-500'
                                                                             : answer.is_selected
-                                                                            ? 'border-red-500 bg-red-500'
-                                                                            : 'border-gray-300'
-                                                                    }`}>
+                                                                                ? 'border-red-500 bg-red-500'
+                                                                                : 'border-gray-300'
+                                                                        }`}>
                                                                         {answer.is_correct || answer.is_selected ? (
                                                                             <span className={`text-xs ${answer.is_correct ? 'text-white' : 'text-white'}`}>
                                                                                 {answer.is_correct ? '✓' : '✗'}
@@ -245,7 +236,7 @@ function QuizResultPage() {
                                                     ))}
                                                 </div>
 
-                                                
+
                                             </div>
                                         </div>
                                     ))}
@@ -253,7 +244,7 @@ function QuizResultPage() {
                             </div>
                         </div>
 
-                        
+
                     </div>
                 </div>
             </div>

@@ -27,7 +27,7 @@ function Profile() {
     async function fetchMyInfo() {
         const json = await apiGet('api/me');
         setMyInfo(json.user);
-        
+
         // Set form data từ response
         setFormData({
             full_name: json.user.full_name || '',
@@ -76,12 +76,7 @@ function Profile() {
         }
     };
 
-    const handleDeleteAvatar = () => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa ảnh đại diện?')) {
-            setAvatarFile(null);
-            setAvatarPreview(null);
-        }
-    };
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -98,7 +93,7 @@ function Profile() {
 
             // Tạo data object và dùng buildFormData
             const submitData = {};
-            
+
             // Thêm các trường thông tin
             ['full_name', 'email', 'phone', 'birth_date', 'gender', 'address', 'description'].forEach(field => {
                 if (formData[field]) submitData[field] = formData[field];
@@ -121,17 +116,17 @@ function Profile() {
             const response = await apiPut('api/profile/update', formDataToSend, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            
+
             if (response.success) {
                 setMessage({ type: 'success', text: 'Cập nhật thông tin thành công!' });
-                
+
                 setFormData(prev => ({
                     ...prev,
                     current_password: '',
                     new_password: '',
                     confirm_password: ''
                 }));
-                
+
                 await fetchMyInfo();
                 setAvatarFile(null);
             } else {
@@ -152,37 +147,28 @@ function Profile() {
 
     return (
         <div className="p-6">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 {/* Modal xem ảnh lớn - Thêm vào đây */}
                 {showAvatarModal && avatarPreview && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setShowAvatarModal(false)}>
-                        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex justify-between items-center p-4 border-b">
-                                <h3 className="text-lg font-semibold">Ảnh đại diện</h3>
-                                <button onClick={() => setShowAvatarModal(false)} className="text-gray-500 hover:text-gray-700">
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div className="p-4">
-                                <img src={avatarPreview} alt="Ảnh đại diện" className="w-full h-auto max-h-[60vh] object-contain mx-auto" />
-                            </div>
-                        </div>
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowAvatarModal(false)}>
+                        <img
+                            src={avatarPreview}
+                            alt="Ảnh đại diện"
+                            className="max-w-[95vw] max-h-[95vh] object-contain"
+                            onClick={(e) => e.stopPropagation()}
+                        />
                     </div>
                 )}
 
                 <div className="mb-8">
                     <h1 className="text-2xl font-semibold text-gray-900 mb-2">Thông tin cá nhân</h1>
-                    <p className="text-gray-600">Quản lý thông tin tài khoản của bạn</p>
                 </div>
 
                 {message.text && (
-                    <div className={`mb-4 p-3 rounded ${
-                        message.type === 'success' 
-                            ? 'bg-green-100 text-green-700 border border-green-200' 
+                    <div className={`mb-4 p-3 rounded ${message.type === 'success'
+                            ? 'bg-green-100 text-green-700 border border-green-200'
                             : 'bg-red-100 text-red-700 border border-red-200'
-                    }`}>
+                        }`}>
                         {message.text}
                     </div>
                 )}
@@ -193,9 +179,9 @@ function Profile() {
                             <div className="flex flex-col items-center md:w-1/4">
                                 <div className="relative w-32 h-32 bg-gray-200 rounded-full mb-4 cursor-pointer" onClick={() => avatarPreview && setShowAvatarModal(true)}>
                                     {avatarPreview ? (
-                                        <img 
+                                        <img
                                             src={avatarPreview}
-                                            alt="Avatar" 
+                                            alt="Avatar"
                                             className="w-full h-full object-cover rounded-full hover:opacity-90 transition-opacity"
                                         />
                                     ) : (
@@ -208,10 +194,10 @@ function Profile() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
-                                        <input 
-                                            type="file" 
-                                            className="hidden" 
-                                            accept="image/*" 
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
                                             onChange={handleAvatarChange}
                                         />
                                     </label>
@@ -222,13 +208,7 @@ function Profile() {
                                         <div className="text-sm text-gray-600">Mã số sinh viên : {myInfo.detail_info.mssv || ''}</div>
                                     </div>
                                 }
-                                <button 
-                                    type="button" 
-                                    onClick={handleDeleteAvatar}
-                                    className="mt-4 text-sm text-blue-600 hover:text-blue-700"
-                                >
-                                    Xóa ảnh
-                                </button>
+                               
                             </div>
 
                             <div className="md:w-3/4">
@@ -359,15 +339,15 @@ function Profile() {
                     </div>
 
                     <div className="flex justify-end gap-4">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={handleCancel}
                             className="border border-gray-300 px-5 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50"
                         >
                             Hủy
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             disabled={loading}
                             className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                         >

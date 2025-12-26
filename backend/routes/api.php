@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\SubjectTimeLineController;
 use App\Http\Controllers\Api\QizzesController;
 use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\QuizStudentController;
+use App\Http\Controllers\Api\StudentGradeController;
 
 Route::post('login', [LoginController::class, 'login']);
 
@@ -102,7 +103,7 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/message/{messageId}', [ChatController::class, 'deleteMessage']);
         Route::get('/class/{classId}/check-new', [ChatController::class, 'checkNewMessages']);
     });
-
+    Route::get('/student-grades/class/{classId}', [StudentGradeController::class, 'getStudentGrades']);
     //thống kê
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 });

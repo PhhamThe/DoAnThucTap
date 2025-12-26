@@ -47,11 +47,11 @@ function GradeComponent() {
                 render: (row) => {
                     const isActive = row.is_active ?? row.data?.is_active;
                     return isActive ? (
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                        <span className="px-2 py-1 text-xs rounded-lg bg-green-100 text-green-800">
                             Đang hoạt động
                         </span>
                     ) : (
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                        <span className="px-2 py-1 text-xs rounded-lg bg-red-100 text-red-800">
                             Không hoạt động
                         </span>
                     );
@@ -70,9 +70,9 @@ function GradeComponent() {
         () => [
             { name: 'code', label: 'Mã loại điểm', required: true, placeholder: 'VD: attendance, assignment...' },
             { name: 'name', label: 'Tên loại điểm', required: true, placeholder: 'VD: Chuyên cần, Bài tập...' },
-            { 
-                name: 'default_weight', 
-                label: 'Trọng số mặc định (%)', 
+            {
+                name: 'default_weight',
+                label: 'Trọng số mặc định (%)',
                 type: 'number',
                 required: true,
                 min: 0,
@@ -80,9 +80,9 @@ function GradeComponent() {
                 step: 0.01
             },
             { name: 'description', label: 'Mô tả', type: 'textarea' },
-            { 
-                name: 'order', 
-                label: 'Thứ tự hiển thị', 
+            {
+                name: 'order',
+                label: 'Thứ tự hiển thị',
                 type: 'number',
                 required: true,
                 min: 0
@@ -141,7 +141,7 @@ function GradeComponent() {
                 order: parseInt(data.order),
                 is_active: data.is_active === '1' || data.is_active === 1
             };
-            
+
             const json = await apiPost('api/grade-components', payload);
             toast.success(json?.message || 'Tạo loại điểm thành công');
 
@@ -180,7 +180,7 @@ function GradeComponent() {
                 order: parseInt(data.order),
                 is_active: data.is_active === '1' || data.is_active === 1
             };
-            
+
             const json = await apiPut(`api/grade-components/${editingRow.id}`, payload);
             toast.success(json?.message || 'Cập nhật loại điểm thành công');
 
@@ -229,7 +229,7 @@ function GradeComponent() {
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Quản lý Loại Điểm</h1>
-            
+
             <DataTable
                 columns={columns}
                 data={componentList}
@@ -255,10 +255,10 @@ function GradeComponent() {
                 }
             />
 
-            <Pagination 
-                currentPage={currentPage} 
-                totalPages={totalPages} 
-                onPageChange={handlePageChange} 
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
             />
 
             {isAddOpen && (

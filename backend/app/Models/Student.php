@@ -17,7 +17,8 @@ class Student extends Model
         'gender',
         'description',
         'mssv',
-        'name'
+        'name',
+        'major_id'
     ];
 
     /**
@@ -31,7 +32,10 @@ class Student extends Model
     {
         return $this->hasMany(QuizResult::class, 'student_id');
     }
-
+    public function major()
+    {
+        return $this->belongsTo(Major::class);
+    }
     /**
      * Accessor: Lấy tên đầy đủ từ bảng users (nếu có)
      */
